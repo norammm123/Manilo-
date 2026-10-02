@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 敏感信息（API Key 千万不要传！）
+.env
+*.key
+secrets.json
+
+# 大数据文件
+*.mp4
+*.wav
+*.zip

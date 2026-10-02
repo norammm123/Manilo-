@@ -1,0 +1,14 @@
+Generation method: built-in image_gen
+
+Use case: logo-brand.
+Asset type: one finished square app icon for “Manilo 掌音”, a human-centered sign-language and speech learning companion.
+
+Create a sophisticated contemporary abstract-art brand mark with warm dopamine colors, strong flat graphic design, and open-ended interpretation. The symbol should be visually memorable and feel like an original identity by an experimental graphic design studio. Express human connection, being heard, learning, warmth and gentle optimism through shape relationships rather than literal illustration.
+
+Form: an economical composition of approximately 3 to 5 broad interlocking asymmetric organic-geometric shapes, precise clean curves and purposeful cutouts. Suggest a flowing abstract M through the overall rhythm, but allow the same mark to be interpreted as an embrace, an unfolding palm, a voice moving through space, a blooming form, or a rising sun. Use bold negative space and surprising yet balanced visual tension. The design should feel playful and artistic, with a clear recognizable silhouette and genuinely considered proportions. Warmth through colors and the way shapes support each other. Avoid literal hand, heart, microphone, soundwave bars, eye, ear, face, medical symbolism or any illustrative anatomy.
+
+Palette: a curated high-saturation warm dopamine palette — persimmon orange, vivid coral red, golden marigold yellow, warm fuchsia / raspberry pink, with a creamy warm-white background. Use no more than four strong colors in the central mark. Flat uniform opaque colors, no color gradients or transparent overlaps. Saturated and optimistic, yet harmonious and refined. Use pink as a warm accent, not cold purple. No blue, black or dull brown.
+
+Style: pure flat graphic artwork, screen-print-inspired solid color planes but WITHOUT grain or printing texture. Crisp vector-like edges, absolutely no shading, no lighting, no 3D, no shadow, no gloss, no bevel, no photographic effects. Polished abstract visual identity, not a generic wellness logo or random collection of blobs. Use generous intentional whitespace.
+
+Composition: a single cohesive emblem centered on a full-bleed warm cream square, about 70 percent of canvas dimension, with a balanced safe area for app icon cropping. No drawn rounded-square container. Exactly one finished icon, no variations sheet, no presentation mockup, no grid lines, no border, no typography, no lettering, no slogan, no watermark. High-resolution square raster output. The product name is context only and should not appear as text.

@@ -1,0 +1,8 @@
+Generation method: built-in image_gen
+
+Use case: logo-brand.
+Create ONE polished application icon for “Manilo 掌音”, an assistive sign-language and speech learning companion. This is variation 1, “Palm and voice”.
+Visual concept: a clearly readable but elegantly simplified open palm, with a compact speech bubble integrated into the palm through purposeful negative space. The shape should imply both a helping hand and communication. Let the finger shapes create a subtle M rhythm. Use 4 or 5 broad crisp shapes total, easy to recognize at a glance; moderate abstraction, strong visual meaning.
+Art direction: contemporary flat graphic identity with warm dopamine colors. Warm vermilion coral, marigold yellow, a limited raspberry pink accent and warm cream. Orange/coral dominant, yellow secondary, pink only one small accent. Harmonious thoughtfully curated color proportions. Organic-geometric construction, clean precise contours, bold silhouette and generous internal spacing. Warm and human, stylish and memorable. No literal realistic anatomy. No heart symbol.
+Composition: exactly one compact emblem centered on a full cream square, occupies about 68-72% of canvas, ample app-icon safe padding. No wordmark or text, no presentation board, no mockup, no variants sheet, no decorative background.
+Strictly flat uniform opaque colors, no gradients, no texture, no shadows, no 3D, no lighting, no outlines. Avoid abstract blobs with unclear meaning, human stick figures, religious hand/eye motifs, blue, black and dull brown. High-resolution square raster.

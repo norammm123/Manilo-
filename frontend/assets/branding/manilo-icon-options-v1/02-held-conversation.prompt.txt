@@ -1,0 +1,8 @@
+Generation method: built-in image_gen
+
+Use case: logo-brand.
+Create ONE professionally designed square app icon for “Manilo 掌音”, a smart-glove sign-language and speech-learning companion. Variation 2: “A conversation held in the palm”.
+Create a compact emblem of two distinct interlocking speech-bubble forms, one persimmon orange and one warm raspberry pink, gently supported by a golden yellow semicircular palm-like cradle. The bubbles' precise inward cutouts should create a subtle M in cream negative space. Viewers should immediately see communication, and can also read a supporting palm or two people exchanging ideas. Moderate abstraction, clear visual meaning, original modern design.
+Art direction: lively warm dopamine color palette, refined flat graphic design. Three harmonious solid colors — persimmon #FF6B32, warm raspberry #EB4778, golden yellow #FFBE32 — on a warm ivory #FFF8EB square. Crisp curves, decisive geometric cutouts, well-balanced asymmetric rhythm, no fine details. A single integrated recognizable logo, not a collection of separate decorative pieces. Large interior white spaces and a silhouette that reads at 32 pixels.
+Every shape must be uniformly filled with exactly one flat color. No gradients whatsoever, no highlight, no lighting, no texture, no grain, no drop shadow, no 3D, no opacity effects. Vector-style graphic finish.
+Composition: precisely ONE emblem centered on a full square canvas, about 68% width, generous even padding. No text, no wordmark, no mockup, no presentation sheet, no rounded tile border, no background ornament, no heart, no detailed fingers, no eyes, no medical symbols, no blue or black. High-resolution final icon.

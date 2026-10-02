@@ -1,0 +1,9 @@
+Generation method: built-in image_gen
+
+Use case: logo-brand.
+Asset type: production app icon for the project “Manilo 掌音”, an intelligent sign-language glove and supportive speech / sign-language learning companion.
+Primary request: Design one polished, warm, caring, memorable application icon. A simple rounded hand gently cups and supports a small heart-shaped speech / sound symbol. The hand and heart-sound shape form one harmonious distinctive emblem, subtly suggesting the letter M through the flowing silhouette without using typography. Communicate connection, being heard, patient learning and companionship.
+Composition: exactly one square icon, straight-on, centered large emblem occupying about 70% of the canvas, balanced generous padding, not a presentation board and not a mockup. Full-bleed pale warm cream / apricot square background suitable for OS rounded-square masking. Keep all important forms within the central safe area.
+Style: sophisticated minimal flat brand illustration with soft rounded organic shapes and a restrained gentle tonal gradient. Bold clean silhouette, crisp contours, very little detail, excellent legibility at 32 pixels. A single clearly recognizable abstract hand, anatomically coherent stylization, smooth thumb and finger forms. Heart or speech symbol with just two simple soft sound-wave strokes integrated naturally.
+Color palette: warm terracotta and peach coral for the hand and heart, creamy ivory negative space, a small muted sage accent at most. Warm nurturing mood, calm and inclusive, friendly but not childish.
+Constraints: no words or text, no Chinese lettering, no labels, no watermarks, no device mockups, no duplicate icons, no medical crosses, no robots, no realistic skin or detailed finger anatomy, no shiny plastic, no dark harsh background, no complex decorative scenery. Produce a finished square raster app icon at high resolution.

@@ -8,6 +8,8 @@ set "MQTT_PORT=1883"
 set "WEB_PORT=5000"
 set "ADMIN_PORT=5174"
 set "DEVICE_ID=board1"
+set "SERIAL_PORT=COM10"
+set "PYTHON=D:\Anaconda_envs\envs\pytorch\python.exe"
 REM ===========================================
 
 echo ======================================
@@ -49,6 +51,9 @@ if not errorlevel 1 (
   echo [3/4] 启动管理看板, 端口 %ADMIN_PORT% ...
   start "Glove-Admin-Dashboard" /D "%~dp0frontend" cmd /k python -m http.server %ADMIN_PORT% --bind 127.0.0.1
 )
+timeout /t 2 /nobreak >nul
+echo [3.5/4] PC inference on %SERIAL_PORT% ...
+start "Glove-PC-Inference" /D "%~dp0backend" cmd /k %PYTHON% pc_inference.py --port %SERIAL_PORT%
 timeout /t 2 /nobreak >nul
 
 REM ---------- 4/4 打开浏览器 ----------

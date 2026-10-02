@@ -59,6 +59,7 @@ LETTER_COOLDOWN = 0.8
 # === ASR ===
 ASR_MODEL_SIZE = os.environ.get('ASR_MODEL_SIZE', 'small')
 ASR_DEVICE = os.environ.get('ASR_DEVICE', 'cuda')
+ASR_ENGINE = os.environ.get('ASR_ENGINE', 'auto')   # auto(云优先) | cloud | local
 
 # === 模型路径 (PC 本地, 可用 env 覆盖) ===
 MODEL_DIR_GESTURE = os.environ.get(
@@ -419,12 +420,13 @@ def _init_asr():
     global _asr
     try:
         from asr_whisper import SpeechRecognizer
-        _asr = SpeechRecognizer(model_size=ASR_MODEL_SIZE, device=ASR_DEVICE)
+        _asr = SpeechRecognizer(model_size=ASR_MODEL_SIZE, device=ASR_DEVICE,
+                                engine=ASR_ENGINE)
         if _asr.available:
-            print('[ASR] 模型已加载')
+            print(f'[ASR] 就绪 (engine={ASR_ENGINE})')
             return True
         else:
-            print('[ASR] 模型不可用')
+            print('[ASR] 无可用引擎')
             _asr = None
             return False
     except Exception as e:
@@ -869,6 +871,9 @@ if __name__ == '__main__':
     ap.add_argument('--mqtt-port', type=int, default=MQTT_PORT)
     ap.add_argument('--device-id', default=DEVICE_ID)
     ap.add_argument('--no-mqtt', action='store_true', help='不连接 MQTT')
+    ap.add_argument('--engine', default=ASR_ENGINE,
+                    choices=['auto', 'cloud', 'local'],
+                    help='语音识别引擎: auto(云优先+本地回退)/cloud(百度)/local(whisper)')
     ap.add_argument('--selftest', action='store_true', help='仅加载模型做假推理后退出')
     args = ap.parse_args()
 
@@ -877,6 +882,7 @@ if __name__ == '__main__':
     MQTT_BROKER = args.broker
     MQTT_PORT = args.mqtt_port
     DEVICE_ID = args.device_id
+    ASR_ENGINE = args.engine
     if args.no_mqtt:
         MQTT_ENABLE = False
 

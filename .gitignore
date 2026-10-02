@@ -28,3 +28,8 @@ secrets.json
 *.mp4
 *.wav
 *.zip
+
+# 本地模型 / 运行时日志
+backend/models/
+backend/mqtt_logs/
+*.log

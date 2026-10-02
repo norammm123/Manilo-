@@ -60,6 +60,7 @@ LETTER_COOLDOWN = 0.8
 ASR_MODEL_SIZE = os.environ.get('ASR_MODEL_SIZE', 'small')
 ASR_DEVICE = os.environ.get('ASR_DEVICE', 'cuda')
 ASR_ENGINE = os.environ.get('ASR_ENGINE', 'auto')   # auto(云优先) | cloud | local
+VOICE_ONLY = False      # --voice: 启动即开麦识别, 不等 F4 的 0xFE 模式字节
 
 # === 模型路径 (PC 本地, 可用 env 覆盖) ===
 MODEL_DIR_GESTURE = os.environ.get(
@@ -585,8 +586,11 @@ def main():
     # 串口
     ser = SerialIO(port=SERIAL_PORT, baud=SERIAL_BAUD)
     if not ser.open():
-        print('[错误] 串口打开失败')
-        return
+        if VOICE_ONLY:
+            print('[串口] 打开失败, --voice 模式继续 (仅无法回传 F4 屏幕)')
+        else:
+            print('[错误] 串口打开失败')
+            return
 
     # MQTT
     mqtt = None
@@ -663,21 +667,6 @@ def main():
                         mqtt.publish_sentence(sentence)
                     speak(chinese)
 
-            # 订阅 ASR, 收到后通过串口转发给 F4
-            def _on_asr(client, userdata, msg):
-                try:
-                    payload = json.loads(msg.payload.decode())
-                    text = payload.get('text', '')
-                    if text:
-                        print(f'\n[ASR→F4] {text}')
-                        ser.write_protocol_a(text)
-                except Exception:
-                    pass
-
-            mqtt._client.subscribe(f'glove/{DEVICE_ID}/asr', qos=1)
-            mqtt._client.message_callback_add(
-                f'glove/{DEVICE_ID}/asr', _on_asr)
-
             def _persist():
                 data = {
                     'confidence_thresh': CONFIDENCE_THRESH,
@@ -700,8 +689,25 @@ def main():
         except Exception as e:
             print(f'[MQTT] 连接失败: {e}')
 
+    # 语音识别结果 -> 串口回传 F4 + 发布 MQTT (前端据此显示)
+    def _on_asr_text(text):
+        ser.write_protocol_a(text)
+        if mqtt and mqtt.connected:
+            mqtt._client.publish(
+                f'glove/{DEVICE_ID}/asr',
+                json.dumps({'text': text, 'ts': time.time()}, ensure_ascii=False),
+                qos=1)
+        print(f'\n[ASR] {text}')
+
+    # --voice: 启动即进入语音模式 (无串口/无 F4 也能用)
+    if VOICE_ONLY:
+        current_mode = 'voice'
+        print('[模式] → voice (--voice, 启动即开麦)')
+        _start_asr(_on_asr_text)
+    else:
+        print('\n等待手套数据...\n')
+
     # ====== 主循环 ======
-    print('\n等待手套数据...\n')
     try:
         while True:
             mode, frame = ser.read_frame()
@@ -726,14 +732,6 @@ def main():
 
                 # 进入语音模式 → 立即启动ASR (不等数据帧)
                 if mode == 'voice':
-                    def _on_asr_text(text):
-                        ser.write_protocol_a(text)
-                        if mqtt and mqtt.connected:
-                            mqtt._client.publish(
-                                f'glove/{DEVICE_ID}/asr',
-                                json.dumps({'text': text, 'ts': time.time()}, ensure_ascii=False),
-                                qos=1)
-                        print(f'\n[ASR] {text}')
                     _start_asr(_on_asr_text)
 
             # 仅模式字节, 无数据帧
@@ -874,6 +872,8 @@ if __name__ == '__main__':
     ap.add_argument('--engine', default=ASR_ENGINE,
                     choices=['auto', 'cloud', 'local'],
                     help='语音识别引擎: auto(云优先+本地回退)/cloud(百度)/local(whisper)')
+    ap.add_argument('--voice', action='store_true',
+                    help='启动即开麦做语音识别, 不等 F4 的 0xFE; 串口打不开也可运行')
     ap.add_argument('--selftest', action='store_true', help='仅加载模型做假推理后退出')
     args = ap.parse_args()
 
@@ -883,6 +883,7 @@ if __name__ == '__main__':
     MQTT_PORT = args.mqtt_port
     DEVICE_ID = args.device_id
     ASR_ENGINE = args.engine
+    VOICE_ONLY = args.voice
     if args.no_mqtt:
         MQTT_ENABLE = False
 

@@ -10,7 +10,6 @@ set "ADMIN_PORT=5174"
 set "DEVICE_ID=board1"
 set "SERIAL_PORT=COM7"
 set "PYTHON=D:\Anaconda_envs\envs\pytorch\python.exe"
-set "ENABLE_ASR_PRACTICE=1"
 REM ===========================================
 
 echo ======================================
@@ -54,18 +53,7 @@ if not errorlevel 1 (
 )
 timeout /t 2 /nobreak >nul
 echo [3.5/4] PC inference on %SERIAL_PORT% ...
-start "Glove-PC-Inference" /D "%~dp0backend" cmd /k %PYTHON% pc_inference.py --port %SERIAL_PORT%
-timeout /t 2 /nobreak >nul
-
-REM ---------- 3.6/4 语音练习 (麦克风 -> 前端) ----------
-REM 注意: 与 pc_inference 的语音模式(等 F4 发 0xFE)会抢麦克风,
-REM       串口通了改用 F4 触发时, 把下面这行改成 ENABLE_ASR_PRACTICE=0
-if "%ENABLE_ASR_PRACTICE%"=="1" (
-  echo [3.6/4] 启动语音练习, 麦克风转文字送前端 ...
-  start "Glove-ASR-Practice" /D "%~dp0backend" cmd /k %PYTHON% asr_practice.py
-) else (
-  echo [3.6/4] 语音练习已跳过 ^(ENABLE_ASR_PRACTICE=0^)
-)
+start "Glove-PC-Inference" /D "%~dp0backend" cmd /k %PYTHON% pc_inference.py --port %SERIAL_PORT% --voice
 timeout /t 2 /nobreak >nul
 
 REM ---------- 4/4 打开浏览器 ----------

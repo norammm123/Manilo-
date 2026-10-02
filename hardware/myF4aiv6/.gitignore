@@ -1,0 +1,22 @@
+# Keil MDK 编译产物
+MDK-ARM/F4_testdemo/
+MDK-ARM/*.lst
+MDK-ARM/*.log
+*.uvguix.*
+*.o
+*.axf
+*.hex
+*.bin
+*.crf
+*.d
+*.dep
+*.lnp
+*.map
+*.iex
+*.build_log.htm
+
+# 临时文件
+tmp/
+__pycache__/
+*.pyc
+.agents/

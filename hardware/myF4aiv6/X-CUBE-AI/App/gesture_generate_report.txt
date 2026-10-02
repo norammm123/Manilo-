@@ -1,0 +1,344 @@
+ST Edge AI Core v2.2.0-20266 2adc00962
+Created date          : 2026-07-23 20:52:25
+Parameters            : generate --target stm32f4 --name gesture -m C:/Users/Lenovo/Desktop/gesture_model/best_model.onnx --compression none --verbosity 1 --workspace C:/Users/Lenovo/AppData/Local/Temp/mxAI_workspace442865107250003099849185997072527 --output C:/Users/Lenovo/.stm32cubemx/gesture_output
+
+Exec/report summary (generate)
+------------------------------------------------------------------------------------------------------------
+model file         :   C:\Users\Lenovo\Desktop\gesture_model\best_model.onnx                                
+type               :   onnx                                                                                 
+c_name             :   gesture                                                                              
+compression        :   none                                                                                 
+options            :   allocate-inputs, allocate-outputs                                                    
+optimization       :   balanced                                                                             
+target/series      :   stm32f4                                                                              
+workspace dir      :   C:\Users\Lenovo\AppData\Local\Temp\mxAI_workspace442865107250003099849185997072527   
+output dir         :   C:\Users\Lenovo\.stm32cubemx\gesture_output                                          
+model_fmt          :   float                                                                                
+model_name         :   best_model                                                                           
+model_hash         :   0xa3d1dc373f21bd33c30b005af28c8995                                                   
+params #           :   65,384 items (255.41 KiB)                                                            
+------------------------------------------------------------------------------------------------------------
+input 1/1          :   'gesture', f32(1x200x11), 8.59 KBytes, activations                                   
+output 1/1         :   'logits', f32(1x18), 72 Bytes, activations                                           
+macc               :   7,735,258                                                                            
+weights (ro)       :   261,536 B (255.41 KiB) (1 segment)                                                   
+activations (rw)   :   53,504 B (52.25 KiB) (1 segment) *                                                   
+ram (total)        :   53,504 B (52.25 KiB) = 53,504 + 0 + 0                                                
+------------------------------------------------------------------------------------------------------------
+(*) 'input'/'output' buffers are allocated in the activations buffer
+
+Model name - best_model
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+m_id   layer (type,original)                                      oshape             param/size             macc                     connected to   | c_size         c_macc             c_type                          
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+1      mean (Placeholder, Sub)                                    [b:1,h:11,c:1]     11/44                                                          |                +2,200(+100.0%)    Eltwise/sub_[1]                 
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+2      std (Placeholder, Div)                                     [b:1,h:11,c:1]     11/44                                                          |                +12,100(+100.0%)   Transpose_/Eltwise/div_[0, 2]   
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+20     model_classifier_2_weight (Placeholder, Gemm)              [b:18,c:64]        1,152/4,608                                                    | +72(+1.6%)     +1,170(+100.0%)    Dense_[o][19]                   
+       model_classifier_2_bias (Placeholder, Gemm)                [b:18]             18/72                                                          | -72(-100.0%)                      
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+0      gesture (Input, )                                          [b:1,h:11,c:200]                                                                  |                                   
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+1      _Sub_output_0 (Eltwise, Sub)                               [b:1,h:11,c:200]                         2,200                          gesture   |                -2,200(-100.0%)    
+                                                                                                                                             mean   | 
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+2      _Div_output_0 (Eltwise, Div)                               [b:1,h:11,c:200]                        11,000                    _Sub_output_0   |                -11,000(-100.0%)   
+                                                                                                                                              std   | 
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+3      _Transpose_output_0 (Transpose, Transpose)                 [b:1,h:200,c:11]                         1,100                    _Div_output_0   |                                   Transpose_[3]                   
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+4      _model_stem_stem_0..v_output_0 (Conv2D, Conv)              [b:1,h:200,c:32]   2,496/9,984         492,832              _Transpose_output_0   |                                   Conv2D_[4]                      
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+5      _model_stem_stem_2..u_output_0 (Nonlinearity, Relu)        [b:1,h:200,c:32]                         6,400   _model_stem_stem_0..v_output_0   |                                   Nonlinearity_[5]                
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+6      _model_block1_conv..v_output_0 (Conv2D, Conv)              [b:1,h:200,c:32]   5,152/20,608      1,024,032   _model_stem_stem_2..u_output_0   |                                   Conv2D_[6]                      
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+7      _model_block1_Relu_output_0 (Nonlinearity, Relu)           [b:1,h:200,c:32]                         6,400   _model_block1_conv..v_output_0   |                                   Nonlinearity_[7]                
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+8      _model_block1_conv..v_output_0 (Conv2D, Conv)              [b:1,h:200,c:32]   5,152/20,608      1,024,032      _model_block1_Relu_output_0   |                                   Conv2D_[8]                      
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+9      _model_block1_Add_output_0 (Eltwise, Add)                  [b:1,h:200,c:32]                         6,400   _model_block1_conv..v_output_0   |                                   Eltwise/add_[9]                 
+                                                                                                                   _model_stem_stem_2..u_output_0   | 
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+10     _model_block1_Relu_1_output_0 (Nonlinearity, Relu)         [b:1,h:200,c:32]                         6,400       _model_block1_Add_output_0   |                                   Nonlinearity_[10]               
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+11     _model_down1_down1..v_output_0 (Conv2D, Conv)              [b:1,h:100,c:64]   10,304/41,216     1,024,064    _model_block1_Relu_1_output_0   |                                   Conv2D_[11]                     
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+12     _model_down1_down1..u_output_0 (Nonlinearity, Relu)        [b:1,h:100,c:64]                         6,400   _model_down1_down1..v_output_0   |                                   Nonlinearity_[12]               
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+13     _model_block2_conv..v_output_0 (Conv2D, Conv)              [b:1,h:100,c:64]   20,544/82,176     2,048,064   _model_down1_down1..u_output_0   |                                   Conv2D_[13]                     
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+14     _model_block2_Relu_output_0 (Nonlinearity, Relu)           [b:1,h:100,c:64]                         6,400   _model_block2_conv..v_output_0   |                                   Nonlinearity_[14]               
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+15     _model_block2_conv..v_output_0 (Conv2D, Conv)              [b:1,h:100,c:64]   20,544/82,176     2,048,064      _model_block2_Relu_output_0   |                                   Conv2D_[15]                     
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+16     _model_block2_Add_output_0 (Eltwise, Add)                  [b:1,h:100,c:64]                         6,400   _model_block2_conv..v_output_0   |                                   Eltwise/add_[16]                
+                                                                                                                   _model_down1_down1..u_output_0   | 
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+17     _model_block2_Relu_1_output_0 (Nonlinearity, Relu)         [b:1,h:100,c:64]                         6,400       _model_block2_Add_output_0   |                                   Nonlinearity_[17]               
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+18     _model_pool_Global..l_output_0 (Pool, GlobalAveragePool)   [b:1,h:1,c:64]                           6,400    _model_block2_Relu_1_output_0   |                                   Pool_[18]                       
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+19     _model_classifier_..n_output_0 (Reshape, Flatten)          [b:1,c:64]                                       _model_pool_Global..l_output_0   |                                   
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+20     logits (Gemm, Gemm)                                        [b:1,c:18]                               1,170   _model_classifier_..n_output_0   |                -1,170(-100.0%)    
+                                                                                                                        model_classifier_2_weight   | 
+                                                                                                                          model_classifier_2_bias   | 
+------ ---------------------------------------------------------- ------------------ --------------- ----------- -------------------------------- --- -------------- ------------------ ------------------------------- 
+model/c-model: macc=7,734,158/7,735,258 +1,100(+0.0%) weights=261,536/261,536  activations=--/53,504 io=--/0
+
+
+
+Generated C-graph summary
+------------------------------------------------------------------------------------------------------------------------
+model name            : best_model
+c-name                : gesture
+c-node #              : 20
+c-array #             : 43
+activations size      : 53504 (1 segment)
+weights size          : 261536 (1 segment)
+macc                  : 7735258
+inputs                : ['gesture_output']
+outputs               : ['logits_output']
+
+C-Arrays (43)
+------ ----------------------------------------------- ------------- ------------------------- ------------- --------- 
+c_id   name (*_array)                                  item/size     domain/mem-pool           c-type        comment   
+------ ----------------------------------------------- ------------- ------------------------- ------------- --------- 
+0      _Div_output_0_output                            2200/8800     activations/**default**   float                   
+1      _Sub_output_0_output                            2200/8800     activations/**default**   float                   
+2      _Transpose_output_0_output                      2200/8800     activations/**default**   float                   
+3      _model_block1_Add_output_0_output               6400/25600    activations/**default**   float                   
+4      _model_block1_Relu_1_output_0_output            6400/25600    activations/**default**   float                   
+5      _model_block1_Relu_output_0_output              6400/25600    activations/**default**   float                   
+6      _model_block1_conv1_Conv_output_0_bias          32/128        weights/weights           const float             
+7      _model_block1_conv1_Conv_output_0_output        6400/25600    activations/**default**   float                   
+8      _model_block1_conv1_Conv_output_0_scratch0      160/640       activations/**default**   float                   
+9      _model_block1_conv1_Conv_output_0_weights       5120/20480    weights/weights           const float             
+10     _model_block1_conv2_Conv_output_0_bias          32/128        weights/weights           const float             
+11     _model_block1_conv2_Conv_output_0_output        6400/25600    activations/**default**   float                   
+12     _model_block1_conv2_Conv_output_0_scratch0      160/640       activations/**default**   float                   
+13     _model_block1_conv2_Conv_output_0_weights       5120/20480    weights/weights           const float             
+14     _model_block2_Add_output_0_output               6400/25600    activations/**default**   float                   
+15     _model_block2_Relu_1_output_0_output            6400/25600    activations/**default**   float                   
+16     _model_block2_Relu_output_0_output              6400/25600    activations/**default**   float                   
+17     _model_block2_conv1_Conv_output_0_bias          64/256        weights/weights           const float             
+18     _model_block2_conv1_Conv_output_0_output        6400/25600    activations/**default**   float                   
+19     _model_block2_conv1_Conv_output_0_scratch0      320/1280      activations/**default**   float                   
+20     _model_block2_conv1_Conv_output_0_weights       20480/81920   weights/weights           const float             
+21     _model_block2_conv2_Conv_output_0_bias          64/256        weights/weights           const float             
+22     _model_block2_conv2_Conv_output_0_output        6400/25600    activations/**default**   float                   
+23     _model_block2_conv2_Conv_output_0_scratch0      320/1280      activations/**default**   float                   
+24     _model_block2_conv2_Conv_output_0_weights       20480/81920   weights/weights           const float             
+25     _model_down1_down1_0_Conv_output_0_bias         64/256        weights/weights           const float             
+26     _model_down1_down1_0_Conv_output_0_output       6400/25600    activations/**default**   float                   
+27     _model_down1_down1_0_Conv_output_0_scratch0     160/640       activations/**default**   float                   
+28     _model_down1_down1_0_Conv_output_0_weights      10240/40960   weights/weights           const float             
+29     _model_down1_down1_2_Relu_output_0_output       6400/25600    activations/**default**   float                   
+30     _model_pool_GlobalAveragePool_output_0_output   64/256        activations/**default**   float                   
+31     _model_stem_stem_0_Conv_output_0_bias           32/128        weights/weights           const float             
+32     _model_stem_stem_0_Conv_output_0_output         6400/25600    activations/**default**   float                   
+33     _model_stem_stem_0_Conv_output_0_scratch0       77/308        activations/**default**   float                   
+34     _model_stem_stem_0_Conv_output_0_weights        2464/9856     weights/weights           const float             
+35     _model_stem_stem_2_Relu_output_0_output         6400/25600    activations/**default**   float                   
+36     gesture_Transpose_output                        2200/8800     activations/**default**   float                   
+37     gesture_output                                  2200/8800     activations/**default**   float         /input    
+38     logits_bias                                     18/72         weights/weights           const float             
+39     logits_output                                   18/72         activations/**default**   float         /output   
+40     logits_weights                                  1152/4608     weights/weights           const float             
+41     mean                                            11/44         weights/weights           const float             
+42     std                                             11/44         weights/weights           const float             
+------ ----------------------------------------------- ------------- ------------------------- ------------- --------- 
+
+C-Layers (20)
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+c_id   name (*_layer)                           id   layer_type      macc      rom     tensors                                            shape (array id)      
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+0      gesture_Transpose                        2    Transpose       1100      0       I: gesture_output                                  f32(1x200x11) (37)    
+                                                                                       O: gesture_Transpose_output                        f32(1x11x200) (36)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+1      _Sub_output_0                            1    Eltwise/sub     2200      44      I: gesture_Transpose_output                        f32(1x11x200) (36)    
+                                                                                       W: mean                                            f32(11x1) (41)        
+                                                                                       O: _Sub_output_0_output                            f32(1x11x200) (1)     
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+2      _Div_output_0                            2    Eltwise/div     11000     44      I: _Sub_output_0_output                            f32(1x11x200) (1)     
+                                                                                       W: std                                             f32(11x1) (42)        
+                                                                                       O: _Div_output_0_output                            f32(1x11x200) (0)     
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+3      _Transpose_output_0                      3    Transpose       1100      0       I: _Div_output_0_output                            f32(1x11x200) (0)     
+                                                                                       O: _Transpose_output_0_output                      f32(1x200x11) (2)     
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+4      _model_stem_stem_0_Conv_output_0         4    Conv2D          492832    9984    I: _Transpose_output_0_output                      f32(1x200x11) (2)     
+                                                                                       S: _model_stem_stem_0_Conv_output_0_scratch0                             
+                                                                                       W: _model_stem_stem_0_Conv_output_0_weights        f32(32x7x1x11) (34)   
+                                                                                       W: _model_stem_stem_0_Conv_output_0_bias           f32(32) (31)          
+                                                                                       O: _model_stem_stem_0_Conv_output_0_output         f32(1x200x32) (32)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+5      _model_stem_stem_2_Relu_output_0         5    Nonlinearity    6400      0       I: _model_stem_stem_0_Conv_output_0_output         f32(1x200x32) (32)    
+                                                                                       O: _model_stem_stem_2_Relu_output_0_output         f32(1x200x32) (35)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+6      _model_block1_conv1_Conv_output_0        6    Conv2D          1024032   20608   I: _model_stem_stem_2_Relu_output_0_output         f32(1x200x32) (35)    
+                                                                                       S: _model_block1_conv1_Conv_output_0_scratch0                            
+                                                                                       W: _model_block1_conv1_Conv_output_0_weights       f32(32x5x1x32) (9)    
+                                                                                       W: _model_block1_conv1_Conv_output_0_bias          f32(32) (6)           
+                                                                                       O: _model_block1_conv1_Conv_output_0_output        f32(1x200x32) (7)     
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+7      _model_block1_Relu_output_0              7    Nonlinearity    6400      0       I: _model_block1_conv1_Conv_output_0_output        f32(1x200x32) (7)     
+                                                                                       O: _model_block1_Relu_output_0_output              f32(1x200x32) (5)     
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+8      _model_block1_conv2_Conv_output_0        8    Conv2D          1024032   20608   I: _model_block1_Relu_output_0_output              f32(1x200x32) (5)     
+                                                                                       S: _model_block1_conv2_Conv_output_0_scratch0                            
+                                                                                       W: _model_block1_conv2_Conv_output_0_weights       f32(32x5x1x32) (13)   
+                                                                                       W: _model_block1_conv2_Conv_output_0_bias          f32(32) (10)          
+                                                                                       O: _model_block1_conv2_Conv_output_0_output        f32(1x200x32) (11)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+9      _model_block1_Add_output_0               9    Eltwise/add     6400      0       I: _model_block1_conv2_Conv_output_0_output        f32(1x200x32) (11)    
+                                                                                       I: _model_stem_stem_2_Relu_output_0_output         f32(1x200x32) (11)    
+                                                                                       O: _model_block1_Add_output_0_output               f32(1x200x32) (3)     
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+10     _model_block1_Relu_1_output_0            10   Nonlinearity    6400      0       I: _model_block1_Add_output_0_output               f32(1x200x32) (3)     
+                                                                                       O: _model_block1_Relu_1_output_0_output            f32(1x200x32) (4)     
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+11     _model_down1_down1_0_Conv_output_0       11   Conv2D          1024064   41216   I: _model_block1_Relu_1_output_0_output            f32(1x200x32) (4)     
+                                                                                       S: _model_down1_down1_0_Conv_output_0_scratch0                           
+                                                                                       W: _model_down1_down1_0_Conv_output_0_weights      f32(64x5x1x32) (28)   
+                                                                                       W: _model_down1_down1_0_Conv_output_0_bias         f32(64) (25)          
+                                                                                       O: _model_down1_down1_0_Conv_output_0_output       f32(1x100x64) (26)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+12     _model_down1_down1_2_Relu_output_0       12   Nonlinearity    6400      0       I: _model_down1_down1_0_Conv_output_0_output       f32(1x100x64) (26)    
+                                                                                       O: _model_down1_down1_2_Relu_output_0_output       f32(1x100x64) (29)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+13     _model_block2_conv1_Conv_output_0        13   Conv2D          2048064   82176   I: _model_down1_down1_2_Relu_output_0_output       f32(1x100x64) (29)    
+                                                                                       S: _model_block2_conv1_Conv_output_0_scratch0                            
+                                                                                       W: _model_block2_conv1_Conv_output_0_weights       f32(64x5x1x64) (20)   
+                                                                                       W: _model_block2_conv1_Conv_output_0_bias          f32(64) (17)          
+                                                                                       O: _model_block2_conv1_Conv_output_0_output        f32(1x100x64) (18)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+14     _model_block2_Relu_output_0              14   Nonlinearity    6400      0       I: _model_block2_conv1_Conv_output_0_output        f32(1x100x64) (18)    
+                                                                                       O: _model_block2_Relu_output_0_output              f32(1x100x64) (16)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+15     _model_block2_conv2_Conv_output_0        15   Conv2D          2048064   82176   I: _model_block2_Relu_output_0_output              f32(1x100x64) (16)    
+                                                                                       S: _model_block2_conv2_Conv_output_0_scratch0                            
+                                                                                       W: _model_block2_conv2_Conv_output_0_weights       f32(64x5x1x64) (24)   
+                                                                                       W: _model_block2_conv2_Conv_output_0_bias          f32(64) (21)          
+                                                                                       O: _model_block2_conv2_Conv_output_0_output        f32(1x100x64) (22)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+16     _model_block2_Add_output_0               16   Eltwise/add     6400      0       I: _model_block2_conv2_Conv_output_0_output        f32(1x100x64) (22)    
+                                                                                       I: _model_down1_down1_2_Relu_output_0_output       f32(1x100x64) (22)    
+                                                                                       O: _model_block2_Add_output_0_output               f32(1x100x64) (14)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+17     _model_block2_Relu_1_output_0            17   Nonlinearity    6400      0       I: _model_block2_Add_output_0_output               f32(1x100x64) (14)    
+                                                                                       O: _model_block2_Relu_1_output_0_output            f32(1x100x64) (15)    
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+18     _model_pool_GlobalAveragePool_output_0   18   Pool            6400      0       I: _model_block2_Relu_1_output_0_output            f32(1x100x64) (15)    
+                                                                                       O: _model_pool_GlobalAveragePool_output_0_output   f32(1x1x64) (30)      
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+19     logits                                   20   Dense           1170      4680    I: _model_pool_GlobalAveragePool_output_0_output   f32(1x1x64) (30)      
+                                                                                       W: logits_weights                                  f32(18x64) (40)       
+                                                                                       W: logits_bias                                     f32(18) (38)          
+                                                                                       O: logits_output                                   f32(1x18) (39)        
+------ ---------------------------------------- ---- --------------- --------- ------- -------------------------------------------------- --------------------- 
+
+
+
+Number of operations per c-layer
+------- ------ ----------------------------------------------- ----------- -------------- 
+c_id    m_id   name (type)                                             #op           type 
+------- ------ ----------------------------------------------- ----------- -------------- 
+0       2      gesture_Transpose (Transpose)                         1,100   smul_f32_f32 
+1       1      _Sub_output_0 (Eltwise/sub)                           2,200     op_f32_f32 
+2       2      _Div_output_0 (Eltwise/div)                          11,000     op_f32_f32 
+3       3      _Transpose_output_0 (Transpose)                       1,100   smul_f32_f32 
+4       4      _model_stem_stem_0..v_output_0 (Conv2D)             492,832   smul_f32_f32 
+5       5      _model_stem_stem_2..u_output_0 (Nonlinearity)         6,400     op_f32_f32 
+6       6      _model_block1_conv..v_output_0 (Conv2D)           1,024,032   smul_f32_f32 
+7       7      _model_block1_Relu_output_0 (Nonlinearity)            6,400     op_f32_f32 
+8       8      _model_block1_conv..v_output_0 (Conv2D)           1,024,032   smul_f32_f32 
+9       9      _model_block1_Add_output_0 (Eltwise/add)              6,400     op_f32_f32 
+10      10     _model_block1_Relu_1_output_0 (Nonlinearity)          6,400     op_f32_f32 
+11      11     _model_down1_down1..v_output_0 (Conv2D)           1,024,064   smul_f32_f32 
+12      12     _model_down1_down1..u_output_0 (Nonlinearity)         6,400     op_f32_f32 
+13      13     _model_block2_conv..v_output_0 (Conv2D)           2,048,064   smul_f32_f32 
+14      14     _model_block2_Relu_output_0 (Nonlinearity)            6,400     op_f32_f32 
+15      15     _model_block2_conv..v_output_0 (Conv2D)           2,048,064   smul_f32_f32 
+16      16     _model_block2_Add_output_0 (Eltwise/add)              6,400     op_f32_f32 
+17      17     _model_block2_Relu_1_output_0 (Nonlinearity)          6,400     op_f32_f32 
+18      18     _model_pool_Global..l_output_0 (Pool)                 6,400   smul_f32_f32 
+19      20     logits (Dense)                                        1,170   smul_f32_f32 
+------- ------ ----------------------------------------------- ----------- -------------- 
+total                                                            7,735,258 
+
+Number of operation types
+---------------- ----------- ----------- 
+operation type             #           % 
+---------------- ----------- ----------- 
+smul_f32_f32       7,670,858       99.2% 
+op_f32_f32            64,400        0.8% 
+
+Complexity report (model)
+------ ---------------------------------------- ------------------------- ------------------------- -------- 
+m_id   name                                     c_macc                    c_rom                     c_id     
+------ ---------------------------------------- ------------------------- ------------------------- -------- 
+1      mean                                     |                  0.0%   |                  0.0%   [1]      
+2      std                                      |                  0.2%   |                  0.0%   [0, 2]   
+20     model_classifier_2_weight                |                  0.0%   |                  1.8%   [19]     
+3      _Transpose_output_0                      |                  0.0%   |                  0.0%   [3]      
+4      _model_stem_stem_0_Conv_output_0         ||||               6.4%   ||                 3.8%   [4]      
+5      _model_stem_stem_2_Relu_output_0         |                  0.1%   |                  0.0%   [5]      
+6      _model_block1_conv1_Conv_output_0        ||||||||          13.2%   ||||               7.9%   [6]      
+7      _model_block1_Relu_output_0              |                  0.1%   |                  0.0%   [7]      
+8      _model_block1_conv2_Conv_output_0        ||||||||          13.2%   ||||               7.9%   [8]      
+9      _model_block1_Add_output_0               |                  0.1%   |                  0.0%   [9]      
+10     _model_block1_Relu_1_output_0            |                  0.1%   |                  0.0%   [10]     
+11     _model_down1_down1_0_Conv_output_0       ||||||||          13.2%   ||||||||          15.8%   [11]     
+12     _model_down1_down1_2_Relu_output_0       |                  0.1%   |                  0.0%   [12]     
+13     _model_block2_conv1_Conv_output_0        ||||||||||||||||  26.5%   ||||||||||||||||  31.4%   [13]     
+14     _model_block2_Relu_output_0              |                  0.1%   |                  0.0%   [14]     
+15     _model_block2_conv2_Conv_output_0        ||||||||||||||||  26.5%   ||||||||||||||||  31.4%   [15]     
+16     _model_block2_Add_output_0               |                  0.1%   |                  0.0%   [16]     
+17     _model_block2_Relu_1_output_0            |                  0.1%   |                  0.0%   [17]     
+18     _model_pool_GlobalAveragePool_output_0   |                  0.1%   |                  0.0%   [18]     
+------ ---------------------------------------- ------------------------- ------------------------- -------- 
+macc=7,735,258 weights=261,536 act=53,504 ram_io=0
+ 
+ Requested memory size by section - "stm32f4" target
+ ------------------------------ -------- --------- ------- -------- 
+ module                             text    rodata    data      bss 
+ ------------------------------ -------- --------- ------- -------- 
+ NetworkRuntime1020_CM4_GCC.a     10,528         0       0        0 
+ gesture.o                         1,036       160   5,796      236 
+ gesture_data.o                       48        16      88        0 
+ lib (toolchain)*                      0         0       0        0 
+ ------------------------------ -------- --------- ------- -------- 
+ RT total**                       11,612       176   5,884      236 
+ ------------------------------ -------- --------- ------- -------- 
+ weights                               0   261,536       0        0 
+ activations                           0         0       0   53,504 
+ io                                    0         0       0        0 
+ ------------------------------ -------- --------- ------- -------- 
+ TOTAL                            11,612   261,712   5,884   53,740 
+ ------------------------------ -------- --------- ------- -------- 
+ *  toolchain objects (libm/libgcc*)
+ ** RT AI runtime objects (kernels+infrastructure)
+  
+  Summary - "stm32f4" target
+  --------------------------------------------------
+               FLASH (ro)     %*   RAM (rw)       % 
+  --------------------------------------------------
+  RT total         17,672   6.3%      6,120   10.3% 
+  --------------------------------------------------
+  TOTAL           279,208            59,624         
+  --------------------------------------------------
+  *  rt/total
+
+
+Generated files (7)
+------------------------------------------------------------------- 
+C:\Users\Lenovo\.stm32cubemx\gesture_output\gesture_data_params.h   
+C:\Users\Lenovo\.stm32cubemx\gesture_output\gesture_data_params.c   
+C:\Users\Lenovo\.stm32cubemx\gesture_output\gesture_data.h          
+C:\Users\Lenovo\.stm32cubemx\gesture_output\gesture_data.c          
+C:\Users\Lenovo\.stm32cubemx\gesture_output\gesture_config.h        
+C:\Users\Lenovo\.stm32cubemx\gesture_output\gesture.h               
+C:\Users\Lenovo\.stm32cubemx\gesture_output\gesture.c               

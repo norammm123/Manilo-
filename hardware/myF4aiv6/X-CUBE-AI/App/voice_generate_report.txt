@@ -1,0 +1,264 @@
+ST Edge AI Core v2.2.0-20266 2adc00962
+Created date          : 2026-07-23 20:52:57
+Parameters            : generate --target stm32f4 --name voice -m C:/Users/Lenovo/Desktop/voice_model/best_model_voice.onnx --compression none --verbosity 1 --workspace C:/Users/Lenovo/AppData/Local/Temp/mxAI_workspace4432436717610017231308834757058013 --output C:/Users/Lenovo/.stm32cubemx/voice_output
+
+Exec/report summary (generate)
+-------------------------------------------------------------------------------------------------------------
+model file         :   C:\Users\Lenovo\Desktop\voice_model\best_model_voice.onnx                             
+type               :   onnx                                                                                  
+c_name             :   voice                                                                                 
+compression        :   none                                                                                  
+options            :   allocate-inputs, allocate-outputs                                                     
+optimization       :   balanced                                                                              
+target/series      :   stm32f4                                                                               
+workspace dir      :   C:\Users\Lenovo\AppData\Local\Temp\mxAI_workspace4432436717610017231308834757058013   
+output dir         :   C:\Users\Lenovo\.stm32cubemx\voice_output                                             
+model_fmt          :   float                                                                                 
+model_name         :   best_model_voice                                                                      
+model_hash         :   0xbcf5d8813a7f0b7d482b68c90316baaf                                                    
+params #           :   2,102 items (8.21 KiB)                                                                
+-------------------------------------------------------------------------------------------------------------
+input 1/1          :   'voice', f32(1x250x9), 8.79 KBytes, activations                                       
+output 1/1         :   'logits', f32(1x4), 16 Bytes, activations                                             
+macc               :   22,416                                                                                
+weights (ro)       :   8,480 B (8.28 KiB) (1 segment) / +72(+0.9%) vs float model                            
+activations (rw)   :   9,108 B (8.89 KiB) (1 segment) *                                                      
+ram (total)        :   9,108 B (8.89 KiB) = 9,108 + 0 + 0                                                    
+-------------------------------------------------------------------------------------------------------------
+(*) 'input'/'output' buffers are allocated in the activations buffer
+
+Model name - best_model_voice
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+m_id   layer (type,original)                    oshape            param/size        macc         connected to   | c_size          c_macc             c_type                     
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+1      mean (Placeholder, Sub)                  [b:1,h:1,c:9]     9/36                                          |                 +2,250(+100.0%)    Eltwise/sub_[0]            
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+2      std (Placeholder, Div)                   [b:1,h:1,c:9]     9/36                                          |                 +11,250(+100.0%)   Eltwise/div_[1]            
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+7      model_net_0_weight (Placeholder, Gemm)   [b:32,c:27]       864/3,456                                     | +128(+3.7%)     +896(+100.0%)      Dense_[7]                  
+       model_net_0_bias (Placeholder, Gemm)     [b:32]            32/128                                        | -128(-100.0%)                      
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+9      model_net_3_weight (Placeholder, Gemm)   [b:32,c:32]       1,024/4,096                                   | +128(+3.1%)     +1,056(+100.0%)    Dense_[9]                  
+       model_net_3_bias (Placeholder, Gemm)     [b:32]            32/128                                        | -128(-100.0%)                      
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+11     model_net_6_weight (Placeholder, Gemm)   [b:4,c:32]        128/512                                       | +16(+3.1%)      +132(+100.0%)      Dense_[o][11]              
+       model_net_6_bias (Placeholder, Gemm)     [b:4]             4/16                                          | -16(-100.0%)                       
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+0      voice (Input, )                          [b:1,h:250,c:9]                                                 |                                    
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+1      sub (Eltwise, Sub)                       [b:1,h:250,c:9]                    2,250                voice   |                 -2,250(-100.0%)    
+                                                                                                         mean   | 
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+2      div (Eltwise, Div)                       [b:1,h:250,c:9]                   11,250                  sub   |                 -11,250(-100.0%)   
+                                                                                                          std   | 
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+3      mean_1 (Reduce, ReduceMean)              [b:1,c:9]                          4,500                  div   | +72(+100.0%)    -2,232(-49.6%)     Reduce_/ScaleBias_[4, 5]   
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+4      getitem (Reduce, ReduceMax)              [b:1,c:9]                          2,250                  div   |                                    Reduce_[3]                 
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+5      getitem_2 (Reduce, ReduceMin)            [b:1,c:9]                          2,250                  div   |                                    Reduce_[2]                 
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+6      cat (Concat, Concat)                     [b:1,c:27]                                             mean_1   |                                    Concat_[6]                 
+                                                                                                      getitem   | 
+                                                                                                    getitem_2   | 
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+7      linear (Gemm, Gemm)                      [b:1,c:32]                           896                  cat   |                 -896(-100.0%)      
+                                                                                           model_net_0_weight   | 
+                                                                                             model_net_0_bias   | 
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+8      relu (Nonlinearity, Relu)                [b:1,c:32]                            32               linear   |                                    Nonlinearity_[8]           
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+9      linear_1 (Gemm, Gemm)                    [b:1,c:32]                         1,056                 relu   |                 -1,056(-100.0%)    
+                                                                                           model_net_3_weight   | 
+                                                                                             model_net_3_bias   | 
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+10     relu_1 (Nonlinearity, Relu)              [b:1,c:32]                            32             linear_1   |                                    Nonlinearity_[10]          
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+11     logits (Gemm, Gemm)                      [b:1,c:4]                            132               relu_1   |                 -132(-100.0%)      
+                                                                                           model_net_6_weight   | 
+                                                                                             model_net_6_bias   | 
+------ ---------------------------------------- ----------------- ------------- -------- -------------------- --- --------------- ------------------ -------------------------- 
+model/c-model: macc=24,648/22,416 -2,232(-9.1%) weights=8,408/8,480 +72(+0.9%) activations=--/9,108 io=--/0
+
+
+
+Generated C-graph summary
+------------------------------------------------------------------------------------------------------------------------
+model name            : best_model_voice
+c-name                : voice
+c-node #              : 12
+c-array #             : 23
+activations size      : 9108 (1 segment)
+weights size          : 8480 (1 segment)
+macc                  : 22416
+inputs                : ['voice_output']
+outputs               : ['logits_output']
+
+C-Arrays (23)
+------ ------------------- ----------- ------------------------- ------------- --------- 
+c_id   name (*_array)      item/size   domain/mem-pool           c-type        comment   
+------ ------------------- ----------- ------------------------- ------------- --------- 
+0      cat_output          27/108      activations/**default**   float                   
+1      div_output          2250/9000   activations/**default**   float                   
+2      getitem_2_output    9/36        activations/**default**   float                   
+3      getitem_output      9/36        activations/**default**   float                   
+4      linear_1_bias       32/128      weights/weights           const float             
+5      linear_1_output     32/128      activations/**default**   float                   
+6      linear_1_weights    1024/4096   weights/weights           const float             
+7      linear_bias         32/128      weights/weights           const float             
+8      linear_output       32/128      activations/**default**   float                   
+9      linear_weights      864/3456    weights/weights           const float             
+10     logits_bias         4/16        weights/weights           const float             
+11     logits_output       4/16        activations/**default**   float         /output   
+12     logits_weights      128/512     weights/weights           const float             
+13     mean_1_Mul_bias     9/36        weights/weights           const float             
+14     mean_1_Mul_output   9/36        activations/**default**   float                   
+15     mean_1_Mul_scale    9/36        weights/weights           const float             
+16     mean_1_output       9/36        activations/**default**   float                   
+17     mean                9/36        weights/weights           const float             
+18     relu_1_output       32/128      activations/**default**   float                   
+19     relu_output         32/128      activations/**default**   float                   
+20     std                 9/36        weights/weights           const float             
+21     sub_output          2250/9000   activations/**default**   float                   
+22     voice_output        2250/9000   activations/**default**   float         /input    
+------ ------------------- ----------- ------------------------- ------------- --------- 
+
+C-Layers (12)
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+c_id   name (*_layer)   id   layer_type      macc    rom    tensors                shape (array id)    
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+0      sub              1    Eltwise/sub     2250    36     I: voice_output        f32(1x250x9) (22)   
+                                                            W: mean                f32(1x9) (17)       
+                                                            O: sub_output          f32(1x250x9) (21)   
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+1      div              2    Eltwise/div     11250   36     I: sub_output          f32(1x250x9) (21)   
+                                                            W: std                 f32(1x9) (20)       
+                                                            O: div_output          f32(1x250x9) (1)    
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+2      getitem_2        5    Reduce          2250    0      I: div_output          f32(1x250x9) (1)    
+                                                            O: getitem_2_output    f32(1x1x9) (2)      
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+3      getitem          4    Reduce          2250    0      I: div_output          f32(1x250x9) (1)    
+                                                            O: getitem_output      f32(1x1x9) (3)      
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+4      mean_1           3    Reduce          2250    0      I: div_output          f32(1x250x9) (1)    
+                                                            O: mean_1_output       f32(1x1x9) (16)     
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+5      mean_1_Mul       3    ScaleBias       18      72     I: mean_1_output       f32(1x1x9) (16)     
+                                                            W: mean_1_Mul_scale    f32(9) (15)         
+                                                            W: mean_1_Mul_bias     f32(9) (13)         
+                                                            O: mean_1_Mul_output   f32(1x9) (14)       
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+6      cat              6    Concat          0       0      I: mean_1_Mul_output   f32(1x9) (14)       
+                                                            I: getitem_output      f32(1x9) (14)       
+                                                            I: getitem_2_output    f32(1x9) (14)       
+                                                            O: cat_output          f32(1x27) (0)       
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+7      linear           7    Dense           896     3584   I: cat_output          f32(1x27) (0)       
+                                                            W: linear_weights      f32(32x27) (9)      
+                                                            W: linear_bias         f32(32) (7)         
+                                                            O: linear_output       f32(1x32) (8)       
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+8      relu             8    Nonlinearity    32      0      I: linear_output       f32(1x32) (8)       
+                                                            O: relu_output         f32(1x32) (19)      
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+9      linear_1         9    Dense           1056    4224   I: relu_output         f32(1x32) (19)      
+                                                            W: linear_1_weights    f32(32x32) (6)      
+                                                            W: linear_1_bias       f32(32) (4)         
+                                                            O: linear_1_output     f32(1x32) (5)       
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+10     relu_1           10   Nonlinearity    32      0      I: linear_1_output     f32(1x32) (5)       
+                                                            O: relu_1_output       f32(1x32) (18)      
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+11     logits           11   Dense           132     528    I: relu_1_output       f32(1x32) (18)      
+                                                            W: logits_weights      f32(4x32) (12)      
+                                                            W: logits_bias         f32(4) (10)         
+                                                            O: logits_output       f32(1x4) (11)       
+------ ---------------- ---- --------------- ------- ------ ---------------------- ------------------- 
+
+
+
+Number of operations per c-layer
+------- ------ ------------------------ -------- -------------- 
+c_id    m_id   name (type)                   #op           type 
+------- ------ ------------------------ -------- -------------- 
+0       1      sub (Eltwise/sub)           2,250     op_f32_f32 
+1       2      div (Eltwise/div)          11,250     op_f32_f32 
+2       5      getitem_2 (Reduce)          2,250   smul_f32_f32 
+3       4      getitem (Reduce)            2,250   smul_f32_f32 
+4       3      mean_1 (Reduce)             2,250   smul_f32_f32 
+5       3      mean_1_Mul (ScaleBias)         18   smul_f32_f32 
+6       6      cat (Concat)                    0   smul_f32_f32 
+7       7      linear (Dense)                896   smul_f32_f32 
+8       8      relu (Nonlinearity)            32     op_f32_f32 
+9       9      linear_1 (Dense)            1,056   smul_f32_f32 
+10      10     relu_1 (Nonlinearity)          32     op_f32_f32 
+11      11     logits (Dense)                132   smul_f32_f32 
+------- ------ ------------------------ -------- -------------- 
+total                                     22,416 
+
+Number of operation types
+---------------- -------- ----------- 
+operation type          #           % 
+---------------- -------- ----------- 
+op_f32_f32         13,564       60.5% 
+smul_f32_f32        8,852       39.5% 
+
+Complexity report (model)
+------ -------------------- ------------------------- ------------------------- -------- 
+m_id   name                 c_macc                    c_rom                     c_id     
+------ -------------------- ------------------------- ------------------------- -------- 
+1      mean                 ||||              10.0%   |                  0.4%   [0]      
+2      std                  ||||||||||||||||  50.2%   |                  0.4%   [1]      
+7      model_net_0_weight   ||                 4.0%   |||||||||||||     42.3%   [7]      
+9      model_net_3_weight   ||                 4.7%   ||||||||||||||||  49.8%   [9]      
+11     model_net_6_weight   |                  0.6%   ||                 6.2%   [11]     
+3      mean_1               ||||              10.1%   |                  0.8%   [4, 5]   
+4      getitem              ||||              10.0%   |                  0.0%   [3]      
+5      getitem_2            ||||              10.0%   |                  0.0%   [2]      
+6      cat                  |                  0.0%   |                  0.0%   [6]      
+8      relu                 |                  0.1%   |                  0.0%   [8]      
+10     relu_1               |                  0.1%   |                  0.0%   [10]     
+------ -------------------- ------------------------- ------------------------- -------- 
+macc=22,416 weights=8,480 act=9,108 ram_io=0
+ 
+ Requested memory size by section - "stm32f4" target
+ ------------------------------ -------- -------- ------- ------- 
+ module                             text   rodata    data     bss 
+ ------------------------------ -------- -------- ------- ------- 
+ NetworkRuntime1020_CM4_GCC.a      9,932        0       0       0 
+ voice.o                             716      156   3,076     192 
+ voice_data.o                         48       16      88       0 
+ lib (toolchain)*                      0        0       0       0 
+ ------------------------------ -------- -------- ------- ------- 
+ RT total**                       10,696      172   3,164     192 
+ ------------------------------ -------- -------- ------- ------- 
+ weights                               0    8,480       0       0 
+ activations                           0        0       0   9,108 
+ io                                    0        0       0       0 
+ ------------------------------ -------- -------- ------- ------- 
+ TOTAL                            10,696    8,652   3,164   9,300 
+ ------------------------------ -------- -------- ------- ------- 
+ *  toolchain objects (libm/libgcc*)
+ ** RT AI runtime objects (kernels+infrastructure)
+  
+  Summary - "stm32f4" target
+  ---------------------------------------------------
+               FLASH (ro)      %*   RAM (rw)       % 
+  ---------------------------------------------------
+  RT total         14,032   62.3%      3,356   26.9% 
+  ---------------------------------------------------
+  TOTAL            22,512             12,464         
+  ---------------------------------------------------
+  *  rt/total
+
+
+Generated files (7)
+--------------------------------------------------------------- 
+C:\Users\Lenovo\.stm32cubemx\voice_output\voice_data_params.h   
+C:\Users\Lenovo\.stm32cubemx\voice_output\voice_data_params.c   
+C:\Users\Lenovo\.stm32cubemx\voice_output\voice_data.h          
+C:\Users\Lenovo\.stm32cubemx\voice_output\voice_data.c          
+C:\Users\Lenovo\.stm32cubemx\voice_output\voice_config.h        
+C:\Users\Lenovo\.stm32cubemx\voice_output\voice.h               
+C:\Users\Lenovo\.stm32cubemx\voice_output\voice.c               

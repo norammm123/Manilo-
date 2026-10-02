@@ -1,0 +1,2 @@
+# .bat 脚本必须保持 CRLF, 且本机脚本用 GBK 编码 —— 强制检出为 CRLF, 避免 cmd 解析错乱
+*.bat text eol=crlf

@@ -1,0 +1,13 @@
+Generation method: built-in image_gen
+
+Use case: logo-brand.
+Design exactly ONE final square app icon for “Manilo 掌音”, a sign-language smart-glove and speech-learning companion. Variation 3: “Voice growing from a palm”.
+Use a saturated warm watermelon / raspberry red solid background #E83D62. The foreground emblem combines a simple golden cupped palm with three upright peach-and-cream rhythmic shapes that read both as a stylized hand gesture and as rising sound pulses. Integrate these ideas into ONE cohesive glyph with a gentle M-shaped rhythm. It must be immediately legible as hand + voice, but retain thoughtful artistic abstraction. No anatomical detail, no facial features, no speech-bubble text, no heart. Give the hand a clear curved supporting base and a subtle thumb cutout rather than a generic U.
+Palette: flat warm golden yellow #FFC44D, luminous peach-orange #FF9358 and warm ivory #FFF6DF, on raspberry red. Balanced clear contrast, warm dopamine mood. No extra colors. Warm, caring, lively, polished. Iconographic contemporary art direction, rounded organic curves with precise clean geometric spacing, broad forms and bold negative space. Minimal yet original. Do not use more than 4 significant foreground pieces.
+Composition: central compact emblem occupying about 65-70 percent of square dimension, generous safe margins. Full-bleed square background, no drawn container or border, no typography, no logo text, no mockup, no variants grid. One icon only.
+Strictly flat opaque solid fills throughout, no gradients, no texture, no grain, no highlights, no shadows, no 3D, no outlines or lighting. Crisp vector-style high-resolution raster finish.
+
+Revision prompt:
+Edit this raspberry-background “Manilo 掌音” icon. Preserve the golden supporting palm, raspberry full-square background, broad flat graphic style, warm peach / gold / ivory palette and centered composition.
+Redesign only the three upright audio shapes above the palm: shorten the central ivory shape so its TOP is slightly LOWER than both peach side shapes. The three tops must be similar heights, never a long elevated central finger. Replace the finger-like pointed bottoms with rounded ends. Arrange the three pieces as short, separated voice pulses, NOT realistic fingers or any obscene hand gesture. Integrate a small cream speech-bubble tail into the rightmost peach pulse using negative space to strengthen the idea of voice. Keep generous spacing between voice pulses and the supporting palm.
+Maintain a compact warm caring modern flat app symbol. Make all colors uniformly flat, no shading, no gradients, no texture, no lighting, no shadow. No text, no additional decorations. One square app icon.

@@ -33,6 +33,19 @@ HTTP `POST /api/agent/log`，也可发布到 MQTT topic `glove/board1/agent/log`
 
 日志追加至 `mqtt_logs/agent_logs.jsonl`，并实时广播。情绪字段当前不使用。
 
+### 观察 Agent（phase = 观察）
+
+后端有一个后台线程会周期分析练习日志，并用**同一个 `agent_log` 事件类型**产出记录，特征是 `phase` 为 `观察`：
+
+```json
+{"type":"agent_log","data":{"ts":1790928770.39,"time":"16:12:50","phase":"观察","input":"练习中：识别 6 次、成句 2 句…","decision":"跟读转写成功 100%…建议逐词跟读","detail":"练习中窗口 · …","session_id":""}}
+```
+
+- 数据源只有已落盘的日志，不涉及硬件报文；`phase` 取值 `观察`，不会与设备的 `感知/分析/决策/反馈` 冲突。
+- 建议在模型不可用时会退回本地规则，因此该事件始终会有内容。
+- 运行状态：`GET /api/agent/observer` → `{enabled, phase, interval_seconds, llm_interval_seconds, llm_enabled, llm_configured, scans, llm_calls, llm_errors, last_emit_ts, last_insight}`。
+- B 端若要恢复「Agent 决策日志」面板，订阅 `agent_log` 后按 `phase == "观察"` 单独成组即可。
+
 ## 跟读转写
 
 HTTP `POST /api/learning/follow-read`，或 MQTT topic `glove/board1/learning/follow_read`：

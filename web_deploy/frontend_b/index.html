@@ -6,8 +6,18 @@
   <meta name="theme-color" content="#101522">
   <title>手语学习 · 教师与家长看板</title>
   <link rel="stylesheet" href="./styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+  <script src="./vendor/vue.global.prod.js"></script>
+  <script src="./vendor/echarts.min.js"></script>
+  <style>
+    /* 观察 Agent 面板局部样式: 复用 styles.css 里既有的 .agent-card/.trace-* 类, 这里只补控制条 */
+    .observer-section{margin-top:12px}
+    .observer-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 15px;border-top:1px solid #29283c;background:#111522}
+    .observer-controls label{display:flex;align-items:center;gap:6px;color:#8792a7;font-size:8px}
+    .observer-controls input[type=number]{width:58px;padding:4px 6px;border:1px solid #30394d;border-radius:5px;background:#101522;color:#c9d2e3;font:8px var(--mono)}
+    .observer-controls .small-button{margin-top:0}
+    .observer-controls button:disabled{opacity:.45;cursor:not-allowed}
+    .observer-message{color:#75d6a8;font-size:8px}
+  </style>
 </head>
 <body>
   <div id="app">
@@ -23,6 +33,7 @@
           <a href="#overview" class="nav-item active"><span>▦</span>学习全景</a>
           <a href="#progress" class="nav-item"><span>⌁</span>学习进度</a>
           <a href="#reports" class="nav-item"><span>✳</span>AI 学习报告</a>
+          <a href="#observer" class="nav-item"><span>◉</span>观察 Agent</a>
           <a href="#dialogue" class="nav-item"><span>▤</span>对话记录</a>
           <a href="#integration" class="nav-item"><span>⌘</span>接口联调</a>
           <a href="#settings" class="nav-item"><span>⚙</span>设备参数</a>
@@ -52,6 +63,25 @@
         <section class="detail-grid">
           <article class="surface detail-card"><div class="surface-heading"><div><div class="section-eyebrow">LEARNING SIGNALS</div><h2>跟读转写与练习反馈</h2></div><span class="subtle-tag">以真实转写事件为准</span></div><div class="signal-grid"><div class="signal-box"><div class="signal-label">累计跟读转写成功率</div><div class="signal-value">{{ metrics.followReadRate===null?'未采集':Math.round(metrics.followReadRate*100)+'%' }}</div><div class="signal-note">{{ metrics.followReadSamples?`${metrics.followReadSamples} 次有效转写记录`:'接入跟读转写日志后显示' }}</div></div><div class="signal-box"><div class="signal-label">目标文本吻合率</div><div class="signal-value">{{ metrics.followReadMatchRate===null?'未采集':Math.round(metrics.followReadMatchRate*100)+'%' }}</div><div class="signal-note">{{ metrics.followReadMatchSamples?`${metrics.followReadMatchSamples} 次带目标文本比对`:'需提供本次目标语句' }}</div></div><div class="signal-box"><div class="signal-label">平均字符错误率（CER）</div><div class="signal-value">{{ metrics.followReadCer===null?'未采集':Math.round(metrics.followReadCer*100)+'%' }}</div><div class="signal-note">{{ metrics.followReadCer===null?'需提供目标语句和识别文本':'基于目标与识别文本逐字比较' }}</div></div></div><div class="mini-chart-grid follow-read-grid"><div class="mini-chart-wrap"><div class="mini-chart-title">各目标语句跟读转写成功率</div><div id="followReadChart" class="mini-chart"></div><div v-if="!demoMode&&!followReadByPhrase.length" class="mini-empty">接入跟读转写日志后显示</div></div></div><div class="integrity-note"><span>i</span><p>情绪状态当前不展示；设备识别置信度也不作为学习正确率。转写成功、目标文本吻合和字符错误率分别统计，后续由真实后端日志驱动。</p></div></article>
           <article id="reports" class="surface report-agent-card"><div class="surface-heading"><div><div class="section-eyebrow">LEARNING REPORT AGENT</div><h2>AI 学习报告</h2></div><span :class="['api-state',reportConfigured?'connected':'']"><i></i>{{ reportConfigured?'报告服务已配置':'报告服务未配置' }}</span></div><p class="report-intro">根据后端保存的本次学习日志生成摘要和建议；没有采集到的指标不会推断。</p><div v-if="!reportConfigured" class="report-config-note">配置后端环境变量 <code>LLM_API_URL</code>、<code>LLM_API_KEY</code>、<code>LLM_MODEL</code>，或单独配置 <code>LEARNING_REPORT_AGENT_URL</code> 并重启 Flask。</div><div class="report-controls"><label for="sessionSelect">选择已结束的学习</label><div><select id="sessionSelect" v-model="selectedSessionId"><option value="">请选择学习会话</option><option v-for="session in finishedSessions" :key="session.id" :value="session.id">{{ formatSession(session) }}</option></select><button class="apply-button" :disabled="reportGenerating||!selectedSessionId" @click="generateReport">{{ reportGenerating?'正在生成…':'生成学习报告' }}</button></div></div><div v-if="currentReport" class="report-result"><div class="report-result-meta">{{ currentReport.agent_used?'由模型根据日志生成':'本地日志摘要 · 模型未生成' }}<span>{{ currentReport.metrics?.duration_seconds?Math.floor(currentReport.metrics.duration_seconds/60)+' 分钟':'' }}</span></div><div class="report-result-body">{{ currentReport.summary }}</div><div v-if="currentReport.agent_error" class="report-error">模型调用失败：{{ currentReport.agent_error }}</div></div><div v-else class="report-placeholder">选择一次已完成的学习，生成基于真实日志的报告。</div><div class="report-history" v-if="reports.length"><b>最近生成</b><button v-for="report in reports.slice(0,5)" :key="report.session_id+'-'+report.created_at" @click="currentReport=report">{{ formatReport(report) }} <span>{{ report.agent_used?'AI':'摘要' }}</span></button></div></article>
+        </section>
+
+        <section class="observer-section">
+          <article id="observer" class="surface agent-card">
+            <div class="agent-header"><div><div class="section-eyebrow">PRACTICE OBSERVER AGENT</div><h2>练习观察 Agent <span class="live-wave">···</span></h2></div><span :class="['trace-state',observerRunning?'trace-live':'']"><i></i>{{ observerRunning?'观察中':'已暂停' }}</span></div>
+            <div class="trace-toolbar"><span>{{ observerLogs.length }} 条</span><span>每 {{ observerConfig.interval_seconds }}s 扫描 · 模型建议{{ observerConfig.llm_enabled?'开':'关' }}</span><button @click="fetchObserverStatus">↻</button></div>
+            <div class="observer-controls">
+              <button class="small-button" @click="toggleObserver">{{ observerConfig.enabled?'暂停观察':'恢复观察' }}</button>
+              <button class="small-button" :disabled="!observerConfig.llm_configured" @click="toggleObserverLlm">模型建议：{{ observerConfig.llm_configured?(observerConfig.llm_enabled?'开':'关'):'未配置' }}</button>
+              <label>扫描间隔<input type="number" min="5" max="600" step="5" v-model.number="observerDraftInterval"><button class="small-button" @click="applyObserverInterval">应用</button></label>
+              <button class="small-button" :disabled="observerScanning" @click="triggerObserverScan">{{ observerScanning?'扫描中…':'立即扫描' }}</button>
+              <span v-if="observerMessage" class="observer-message">{{ observerMessage }}</span>
+            </div>
+            <div class="trace-list">
+              <div v-if="!observerLogs.length" class="trace-empty"><span class="trace-empty-icon">◉</span><b>还没有观察产出</b><small>练习数据落盘后 Agent 会自动汇总；也可点「立即扫描」用现有日志试跑。</small></div>
+              <div v-for="(row,index) in observerLogs" :key="row.ts+'-'+index" class="trace-row"><time>{{ row.time }}</time><div class="trace-content"><span :class="['trace-phase','phase-'+phaseClass(row.phase)]">{{ row.phase||'观察' }}</span><span class="trace-main">{{ row.input }}</span><div class="trace-decision"><span>▸</span>{{ row.decision }}</div></div></div>
+            </div>
+            <div class="trace-footer"><span><i></i>模型调用 {{ observerConfig.llm_calls }} 次 · 失败 {{ observerConfig.llm_errors }} 次</span><span>扫描 {{ observerConfig.scans }} 次 · 上次产出 {{ observerConfig.last_emit_ts?formatClock(observerConfig.last_emit_ts):'暂无' }}</span></div>
+          </article>
         </section>
 
         <section class="lower-grid">

@@ -50,6 +50,16 @@ OBSERVER_MIN_DELTA = int(os.environ.get("OBSERVER_MIN_DELTA", "2"))        # 新
 OBSERVER_MAX_TOKENS = int(os.environ.get("OBSERVER_MAX_TOKENS", "6000"))   # 推理模型需留足 reasoning 预算
 OBSERVER_PHASE = "观察"
 
+# 运行时可调参数: 初值取自上面环境变量, B 端控制面板可在线修改(只影响本次进程, 不落盘)
+_observer_config = {
+    "enabled": OBSERVER_ENABLED,
+    "llm_enabled": OBSERVER_LLM,
+    "interval": OBSERVER_INTERVAL,
+    "llm_interval": OBSERVER_LLM_INTERVAL,
+    "min_delta": OBSERVER_MIN_DELTA,
+}
+_observer_lock = threading.Lock()
+
 
 def load_thresholds():
     """加载持久化的阈值设置"""
@@ -1234,62 +1244,69 @@ def _observer_llm_advice(label, snapshot):
     ], max_tokens=OBSERVER_MAX_TOKENS)
 
 
-def _observer_tick():
-    label, start, end, session_id, _mode = _observer_window()
-    snapshot = _observer_collect(start, end, session_id)
-    state = _observer_state
-    state["scans"] += 1
-    if snapshot["total"] == 0:
-        return None
+def _observer_tick(force=False):
+    """扫描一次。force=True 时忽略"新增量"门槛(供 B 端手动扫描/演示)。
 
-    window_key = (session_id, label, round(start, 1))
-    if state["window_key"] != window_key:
-        state["window_key"] = window_key
-        state["last_count"] = 0
-    if snapshot["total"] - state["last_count"] < OBSERVER_MIN_DELTA:
-        return None
+    用 _observer_lock 串行化, 避免后台线程与手动请求同时扫描(会重复调模型)。
+    """
+    with _observer_lock:
+        label, start, end, session_id, _mode = _observer_window()
+        snapshot = _observer_collect(start, end, session_id)
+        state = _observer_state
+        state["scans"] += 1
+        if snapshot["total"] == 0:
+            return None
 
-    facts = _observer_facts(snapshot)
-    decision = _observer_local_advice(snapshot)
-    source = "本地"
-    configured = bool(OBSERVER_LLM and LLM_API_URL and LLM_API_KEY and LLM_MODEL)
-    # 注意: last_llm_ts 初值 0, 因此进程内首次产出一定会调一次模型, 之后才按间隔限流。
-    # 想彻底不调用模型(零 token 成本)请设 OBSERVER_LLM=0。
-    if configured and time.time() - state["last_llm_ts"] >= OBSERVER_LLM_INTERVAL:
-        try:
-            decision = _observer_llm_advice(label, snapshot)
-            source = "模型"
-            state["llm_calls"] += 1
-            state["last_llm_ts"] = time.time()
-        except Exception as exc:
-            state["llm_errors"] += 1
-            print(f"[观察Agent] 模型调用失败, 退回本地建议: {exc}")
+        window_key = (session_id, label, round(start, 1))
+        if state["window_key"] != window_key:
+            state["window_key"] = window_key
+            state["last_count"] = 0
+        if not force and snapshot["total"] - state["last_count"] < _observer_config["min_delta"]:
+            return None
 
-    record = {
-        "phase": OBSERVER_PHASE,
-        "input": f"{label}：{facts}",
-        "decision": decision,
-        "detail": f"{label}窗口 · {facts}"
-                  + (f" · 最近句子「{snapshot['last_sentence']}」" if snapshot["last_sentence"] else ""),
-        "session_id": session_id or "",
-        "ts": time.time(),
-    }
-    with _lock:
-        stored = _record_agent_log(record)
-    state["last_count"] = snapshot["total"]
-    state["last_emit_ts"] = time.time()
-    state["last_insight"] = stored
-    print(f"[观察Agent] ({source}) {decision}")
-    return stored
+        facts = _observer_facts(snapshot)
+        decision = _observer_local_advice(snapshot)
+        source = "本地"
+        configured = bool(_observer_config["llm_enabled"] and LLM_API_URL and LLM_API_KEY and LLM_MODEL)
+        # 注意: last_llm_ts 初值 0, 因此进程内首次产出一定会调一次模型, 之后才按间隔限流。
+        # 想彻底不调用模型(零 token 成本)可在 B 端关掉"模型建议", 或设 OBSERVER_LLM=0。
+        if configured and time.time() - state["last_llm_ts"] >= _observer_config["llm_interval"]:
+            try:
+                decision = _observer_llm_advice(label, snapshot)
+                source = "模型"
+                state["llm_calls"] += 1
+                state["last_llm_ts"] = time.time()
+            except Exception as exc:
+                state["llm_errors"] += 1
+                print(f"[观察Agent] 模型调用失败, 退回本地建议: {exc}")
+
+        record = {
+            "phase": OBSERVER_PHASE,
+            "input": f"{label}：{facts}",
+            "decision": decision,
+            "detail": f"{label}窗口 · {facts}"
+                      + (f" · 最近句子「{snapshot['last_sentence']}」" if snapshot["last_sentence"] else ""),
+            "session_id": session_id or "",
+            "ts": time.time(),
+        }
+        with _lock:
+            stored = _record_agent_log(record)
+        state["last_count"] = snapshot["total"]
+        state["last_emit_ts"] = time.time()
+        state["last_insight"] = stored
+        print(f"[观察Agent] ({source}) {decision}")
+        return stored
 
 
 def _observer_loop():
-    has_model = bool(OBSERVER_LLM and LLM_API_URL and LLM_API_KEY and LLM_MODEL)
-    print(f"[观察Agent] 已启动: 每 {OBSERVER_INTERVAL:g}s 扫描一次, "
-          f"模型建议至少间隔 {OBSERVER_LLM_INTERVAL:g}s"
+    has_model = bool(_observer_config["llm_enabled"] and LLM_API_URL and LLM_API_KEY and LLM_MODEL)
+    print(f"[观察Agent] 已启动: 每 {_observer_config['interval']:g}s 扫描一次, "
+          f"模型建议至少间隔 {_observer_config['llm_interval']:g}s"
           + ("" if has_model else " (仅本地分析)"))
     while True:
-        time.sleep(OBSERVER_INTERVAL)
+        time.sleep(max(5.0, float(_observer_config["interval"])))
+        if not _observer_config["enabled"]:
+            continue  # 线程常驻, 等 B 端重新开启
         try:
             _observer_tick()
         except Exception as exc:
@@ -1297,31 +1314,61 @@ def _observer_loop():
 
 
 def start_observer_agent():
-    if not OBSERVER_ENABLED:
-        print("[观察Agent] 已关闭 (OBSERVER_AGENT=0)")
-        return None
+    """线程始终启动, 是否产出由 _observer_config['enabled'] 决定(B 端可在线开关)。"""
+    if not _observer_config["enabled"]:
+        print("[观察Agent] 已启动但当前为关闭状态 (可在 B 端面板开启, 或设 OBSERVER_AGENT=1)")
     thread = threading.Thread(target=_observer_loop, name="practice-observer", daemon=True)
     thread.start()
     return thread
 
 
-@app.route("/api/agent/observer")
-def api_agent_observer():
-    """观察 Agent 运行状态, 供 B 端展示。"""
-    return jsonify({
-        "enabled": OBSERVER_ENABLED,
+def _observer_status():
+    return {
+        "enabled": _observer_config["enabled"],
         "phase": OBSERVER_PHASE,
-        "interval_seconds": OBSERVER_INTERVAL,
-        "llm_interval_seconds": OBSERVER_LLM_INTERVAL,
-        "min_delta": OBSERVER_MIN_DELTA,
-        "llm_enabled": OBSERVER_LLM,
+        "interval_seconds": _observer_config["interval"],
+        "llm_interval_seconds": _observer_config["llm_interval"],
+        "min_delta": _observer_config["min_delta"],
+        "llm_enabled": _observer_config["llm_enabled"],
         "llm_configured": bool(LLM_API_URL and LLM_API_KEY and LLM_MODEL),
         "scans": _observer_state["scans"],
         "llm_calls": _observer_state["llm_calls"],
         "llm_errors": _observer_state["llm_errors"],
         "last_emit_ts": _observer_state["last_emit_ts"] or None,
         "last_insight": _observer_state["last_insight"],
-    })
+    }
+
+
+@app.route("/api/agent/observer", methods=["GET", "POST"])
+def api_agent_observer():
+    """观察 Agent 状态(GET) / 在线调整参数(POST), 供 B 端控制面板。"""
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+        if "enabled" in payload:
+            _observer_config["enabled"] = bool(payload["enabled"])
+        if "llm_enabled" in payload:
+            _observer_config["llm_enabled"] = bool(payload["llm_enabled"])
+        if "interval_seconds" in payload:
+            try:
+                _observer_config["interval"] = max(5.0, min(600.0, float(payload["interval_seconds"])))
+            except (TypeError, ValueError):
+                pass
+        if "min_delta" in payload:
+            try:
+                _observer_config["min_delta"] = max(1, min(100, int(payload["min_delta"])))
+            except (TypeError, ValueError):
+                pass
+    return jsonify(_observer_status())
+
+
+@app.route("/api/agent/observer/tick", methods=["POST"])
+def api_agent_observer_tick():
+    """手动触发一次扫描; force=True 忽略新增量门槛, 便于演示时立即看到产出。"""
+    try:
+        record = _observer_tick(force=True)
+    except Exception as exc:
+        return jsonify({"emitted": False, "record": None, "error": f"扫描失败: {exc}", **_observer_status()}), 500
+    return jsonify({"emitted": bool(record), "record": record, **_observer_status()})
 
 
 # ==== 主入口 ====

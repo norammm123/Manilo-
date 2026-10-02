@@ -58,6 +58,11 @@
         reconnectTimer: null,
         refreshTimer: null,
         socket: null,
+        observerLogs: [],
+        observerMessage: '',
+        observerScanning: false,
+        observerDraftInterval: 30,
+        observerConfig: { enabled: false, llm_enabled: false, llm_configured: false, interval_seconds: 30, llm_interval_seconds: 120, min_delta: 2, scans: 0, llm_calls: 0, llm_errors: 0, last_emit_ts: null, last_insight: null },
       };
     },
     computed: {
@@ -100,10 +105,14 @@
       finishedSessions() {
         return this.sessions.filter((session) => session.status === 'finished');
       },
+      observerRunning() {
+        return !!(this.observerConfig.enabled && this.connected);
+      },
     },
     mounted() {
       this.connect();
       this.refreshAll();
+      this.fetchObserverStatus().catch(() => {});
       this.$nextTick(() => {
         if (window.echarts) {
           this.charts.progress = echarts.init(document.getElementById('progressChart'));
@@ -135,7 +144,7 @@
     methods: {
       async refreshAll() {
         if (this.demoMode) return;
-        await Promise.allSettled([this.fetchStats(), this.fetchAnalytics(), this.fetchSessions(), this.fetchReports(), this.fetchAssistantStatus()]);
+        await Promise.allSettled([this.fetchStats(), this.fetchAnalytics(), this.fetchSessions(), this.fetchReports(), this.fetchAssistantStatus(), this.fetchObserverStatus()]);
       },
       async fetchStats() {
         const response = await fetch(`${this.apiBase}/api/learning/stats`);
@@ -166,6 +175,60 @@
         this.assistantConfigured = !!(status.chat_configured ?? status.configured);
         this.reportConfigured = !!(status.report_configured ?? status.configured);
         this.assistantModel = status.model || '';
+      },
+      async fetchObserverStatus() {
+        const response = await fetch(`${this.apiBase}/api/agent/observer`);
+        if (!response.ok) throw new Error(`observer ${response.status}`);
+        this.observerConfig = await response.json();
+        this.observerDraftInterval = this.observerConfig.interval_seconds;
+        if (!this.observerLogs.length && this.observerConfig.last_insight) {
+          this.observerLogs = [this.observerConfig.last_insight];
+        }
+      },
+      async updateObserver(patch) {
+        try {
+          const response = await fetch(`${this.apiBase}/api/agent/observer`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patch),
+          });
+          if (!response.ok) throw new Error(`observer ${response.status}`);
+          this.observerConfig = await response.json();
+          this.observerMessage = '已应用';
+        } catch (error) {
+          this.observerMessage = error.message || '设置失败';
+        }
+      },
+      toggleObserver() {
+        this.updateObserver({ enabled: !this.observerConfig.enabled });
+      },
+      toggleObserverLlm() {
+        this.updateObserver({ llm_enabled: !this.observerConfig.llm_enabled });
+      },
+      applyObserverInterval() {
+        this.updateObserver({ interval_seconds: Number(this.observerDraftInterval) });
+      },
+      async triggerObserverScan() {
+        if (this.observerScanning) return;
+        this.observerScanning = true;
+        this.observerMessage = '';
+        try {
+          const response = await fetch(`${this.apiBase}/api/agent/observer/tick`, { method: 'POST' });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || '扫描失败');
+          if (result.record) this.pushObserverLog(result.record);
+          await this.fetchObserverStatus();
+          this.observerMessage = result.emitted ? '已产出新观察' : '本次扫描无新增练习数据';
+        } catch (error) {
+          this.observerMessage = error.message || '扫描失败';
+        } finally {
+          this.observerScanning = false;
+        }
+      },
+      pushObserverLog(record) {
+        if (!record || !record.ts) return;
+        if (this.observerLogs.some((row) => row.ts === record.ts && row.decision === record.decision)) return;
+        this.observerLogs.unshift(record);
+        this.observerLogs = this.observerLogs.slice(0, 50);
       },
       formatSession(session) {
         const at = session.ended_at || session.started_at;
@@ -298,6 +361,7 @@
         if (envelope.type === 'init') {
           const initial = envelope;
           if (initial.status) this.updateStatus(initial.status);
+          this.observerLogs = (initial.agent_logs || []).slice(-50).reverse();
           this.conversations = [];
           const messages = (initial.conversation_messages?.length ? initial.conversation_messages : [
             ...(initial.asr_messages || []).map((item) => ({ ...item, role: 'learner' })),
@@ -324,6 +388,7 @@
           clearTimeout(this.refreshTimer);
           this.refreshTimer = setTimeout(() => this.fetchAnalytics().catch(() => {}), 300);
         }
+        if (envelope.type === 'agent_log' && envelope.data) this.pushObserverLog(envelope.data);
         if (envelope.type === 'learning_finished') {
           this.fetchSessions().catch(() => {});
           this.fetchReports().catch(() => {});

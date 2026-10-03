@@ -3,11 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101522">
-  <title>手语学习 · 教师与家长看板</title>
+  <meta name="theme-color" content="#F3E8D3">
+  <title>掌音 Manilo · 教师与家长看板</title>
   <link rel="stylesheet" href="./styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/vue@3.5.42/dist/vue.global.prod.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+  <script src="./vendor/vue.global.prod.js"></script>
+  <script src="./vendor/echarts.min.js"></script>
+  <style>
+    /* 观察 Agent 面板局部样式: 复用 styles.css 里既有的 .agent-card/.trace-* 类, 这里只补控制条 */
+    .observer-section{margin-top:12px}
+    .observer-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 15px;border-top:1px solid #EDE1CB;background:#F8EFDD}
+    .observer-controls label{display:flex;align-items:center;gap:6px;color:#857357;font-size:8px}
+    .observer-controls input[type=number]{width:58px;padding:4px 6px;border:1px solid #E4D6BB;border-radius:5px;background:#FFFCF4;color:#53442C;font:8px var(--mono)}
+    .observer-controls .small-button{margin-top:0}
+    .observer-controls button:disabled{opacity:.45;cursor:not-allowed}
+    .observer-message{color:#4F8A63;font-size:8px}
+  </style>
 </head>
 <body>
   <div id="app">
@@ -16,13 +26,14 @@
   <script type="text/x-template" id="app-template">
     <div class="app-frame">
       <aside class="sidebar">
-        <a class="brand" href="#overview"><span class="brand-icon">G</span><span><b>GLOVE LAB</b><small>LEARNING INTELLIGENCE</small></span></a>
+        <a class="brand" href="#overview"><img class="brand-logo" src="./assets/logo-mark.png" alt="Manilo 掌音 队标"><span><b>MANILO 掌音</b><small>LEARNING INTELLIGENCE</small></span></a>
         <div class="workspace"><span class="workspace-dot"></span><span>教师 / 家长工作台</span><span class="workspace-caret">⌄</span></div>
         <div class="nav-label">数据工作区</div>
         <nav class="side-nav">
           <a href="#overview" class="nav-item active"><span>▦</span>学习全景</a>
           <a href="#progress" class="nav-item"><span>⌁</span>学习进度</a>
           <a href="#reports" class="nav-item"><span>✳</span>AI 学习报告</a>
+          <a href="#observer" class="nav-item"><span>◉</span>观察 Agent</a>
           <a href="#dialogue" class="nav-item"><span>▤</span>对话记录</a>
           <a href="#integration" class="nav-item"><span>⌘</span>接口联调</a>
           <a href="#settings" class="nav-item"><span>⚙</span>设备参数</a>
@@ -54,6 +65,25 @@
           <article id="reports" class="surface report-agent-card"><div class="surface-heading"><div><div class="section-eyebrow">LEARNING REPORT AGENT</div><h2>AI 学习报告</h2></div><span :class="['api-state',reportConfigured?'connected':'']"><i></i>{{ reportConfigured?'报告服务已配置':'报告服务未配置' }}</span></div><p class="report-intro">根据后端保存的本次学习日志生成摘要和建议；没有采集到的指标不会推断。</p><div v-if="!reportConfigured" class="report-config-note">配置后端环境变量 <code>LLM_API_URL</code>、<code>LLM_API_KEY</code>、<code>LLM_MODEL</code>，或单独配置 <code>LEARNING_REPORT_AGENT_URL</code> 并重启 Flask。</div><div class="report-controls"><label for="sessionSelect">选择已结束的学习</label><div><select id="sessionSelect" v-model="selectedSessionId"><option value="">请选择学习会话</option><option v-for="session in finishedSessions" :key="session.id" :value="session.id">{{ formatSession(session) }}</option></select><button class="apply-button" :disabled="reportGenerating||!selectedSessionId" @click="generateReport">{{ reportGenerating?'正在生成…':'生成学习报告' }}</button></div></div><div v-if="currentReport" class="report-result"><div class="report-result-meta">{{ currentReport.agent_used?'由模型根据日志生成':'本地日志摘要 · 模型未生成' }}<span>{{ currentReport.metrics?.duration_seconds?Math.floor(currentReport.metrics.duration_seconds/60)+' 分钟':'' }}</span></div><div class="report-result-body">{{ currentReport.summary }}</div><div v-if="currentReport.agent_error" class="report-error">模型调用失败：{{ currentReport.agent_error }}</div></div><div v-else class="report-placeholder">选择一次已完成的学习，生成基于真实日志的报告。</div><div class="report-history" v-if="reports.length"><b>最近生成</b><button v-for="report in reports.slice(0,5)" :key="report.session_id+'-'+report.created_at" @click="currentReport=report">{{ formatReport(report) }} <span>{{ report.agent_used?'AI':'摘要' }}</span></button></div></article>
         </section>
 
+        <section class="observer-section">
+          <article id="observer" class="surface agent-card">
+            <div class="agent-header"><div><div class="section-eyebrow">PRACTICE OBSERVER AGENT</div><h2>练习观察 Agent <span class="live-wave">···</span></h2></div><span :class="['trace-state',observerRunning?'trace-live':'']"><i></i>{{ observerRunning?'观察中':'已暂停' }}</span></div>
+            <div class="trace-toolbar"><span>{{ observerLogs.length }} 条</span><span>每 {{ observerConfig.interval_seconds }}s 扫描 · 模型建议{{ observerConfig.llm_enabled?'开':'关' }}</span><button @click="fetchObserverStatus">↻</button></div>
+            <div class="observer-controls">
+              <button class="small-button" @click="toggleObserver">{{ observerConfig.enabled?'暂停观察':'恢复观察' }}</button>
+              <button class="small-button" :disabled="!observerConfig.llm_configured" @click="toggleObserverLlm">模型建议：{{ observerConfig.llm_configured?(observerConfig.llm_enabled?'开':'关'):'未配置' }}</button>
+              <label>扫描间隔<input type="number" min="5" max="600" step="5" v-model.number="observerDraftInterval"><button class="small-button" @click="applyObserverInterval">应用</button></label>
+              <button class="small-button" :disabled="observerScanning" @click="triggerObserverScan">{{ observerScanning?'扫描中…':'立即扫描' }}</button>
+              <span v-if="observerMessage" class="observer-message">{{ observerMessage }}</span>
+            </div>
+            <div class="trace-list">
+              <div v-if="!observerLogs.length" class="trace-empty"><span class="trace-empty-icon">◉</span><b>还没有观察产出</b><small>练习数据落盘后 Agent 会自动汇总；也可点「立即扫描」用现有日志试跑。</small></div>
+              <div v-for="(row,index) in observerLogs" :key="row.ts+'-'+index" class="trace-row"><time>{{ row.time }}</time><div class="trace-content"><span :class="['trace-phase','phase-'+phaseClass(row.phase)]">{{ row.phase||'观察' }}</span><span class="trace-main">{{ row.input }}</span><div class="trace-decision"><span>▸</span>{{ row.decision }}</div></div></div>
+            </div>
+            <div class="trace-footer"><span><i></i>模型调用 {{ observerConfig.llm_calls }} 次 · 失败 {{ observerConfig.llm_errors }} 次</span><span>扫描 {{ observerConfig.scans }} 次 · 上次产出 {{ observerConfig.last_emit_ts?formatClock(observerConfig.last_emit_ts):'暂无' }}</span></div>
+          </article>
+        </section>
+
         <section class="lower-grid">
           <article id="dialogue" class="surface conversation-card"><div class="surface-heading"><div><div class="section-eyebrow">AI LEARNING ASSISTANT</div><h2>AI 对话助手</h2></div><span :class="['api-state',assistantConfigured?'connected':'']"><i></i>{{ assistantConfigured?'模型已配置':'等待模型配置' }}</span></div><div class="chat-context">{{ selectedSessionId?'已关联所选学习会话':'选择学习会话后，助手可结合本次日志回答' }}</div><div class="conversation-list" ref="conversationList"><div v-if="!visibleConversations.length" class="conversation-empty">开始提问，助手会结合学习日志给出练习建议。</div><div v-for="(item,index) in visibleConversations" :key="item.id||index" :class="['bubble-row',item.role]"><span class="bubble-avatar">{{ item.role==='learner'?'学':'AI' }}</span><div class="bubble-wrap"><div class="bubble-meta">{{ item.role==='learner'?'学习者':'AI 助手' }} <time>{{ item.time }}</time></div><div class="bubble">{{ item.text }}</div></div></div></div><div v-if="assistantMessage" class="assistant-message">{{ assistantMessage }}</div><form class="chat-compose" @submit.prevent="sendAssistantMessage"><textarea v-model="draftMessage" :disabled="chatSending||!assistantConfigured" placeholder="例如：这次哪些语句需要再练？" rows="2"></textarea><button class="apply-button" :disabled="chatSending||!assistantConfigured||!draftMessage.trim()">{{ chatSending?'发送中':'发送' }}</button></form><div class="chat-foot">对话内容会由后端按会话保存；模型密钥只配置在后端环境变量中。</div></article>
           <article id="integration" class="surface integration-card"><div class="surface-heading"><div><div class="section-eyebrow">BACKEND LINK</div><h2>后端联调</h2></div><span :class="['api-state',connected?'connected':'']"><i></i>{{ connected?'已连通':'未连通' }}</span></div><div class="endpoint-row"><label>HTTP API</label><code>{{ apiBase }}/api</code><button @click="copyText(apiBase+'/api')">复制</button></div><div class="endpoint-row"><label>实时事件</label><code>{{ streamMode==='ws'?'WebSocket':'SSE / HTTP' }}</code><button @click="streamMode='sse'">SSE</button></div><div class="contract-box"><b>Agent log event schema</b><pre>{
@@ -64,7 +94,7 @@
 }</pre></div><div class="contract-foot">Agent trace 写入 <code>POST /api/agent/log</code>；跟读转写写入 <code>POST /api/learning/follow-read</code> 并通过 SSE 广播。报告 Agent 在结束学习时接收本次会话日志。</div><div class="api-editor"><label for="apiInput">后台地址</label><div><input id="apiInput" v-model="apiDraft" spellcheck="false"><button class="apply-button" @click="applyApi">应用</button></div></div></article>
         </section>
         <section id="settings" class="surface settings-card"><details @toggle="onSettingsToggle"><summary><span><span class="section-eyebrow">DEVICE CONFIGURATION</span><b>设备阈值与识别参数</b><small>保持在 B 端管理；学习主站不展示这些控制项。</small></span><i>⌄</i></summary><div class="settings-content"><div class="threshold-grid"><div v-for="setting in settingFields" :key="setting.key" class="threshold-control"><label :for="'setting-'+setting.key">{{ setting.label }}</label><input :id="'setting-'+setting.key" type="range" :min="setting.min" :max="setting.max" :step="setting.step" v-model.number="thresholds[setting.key]"><span>{{ thresholds[setting.key] }}</span><button @click="applySetting(setting)">应用</button></div></div><div class="threshold-subgrid"><div><h3>手语逐词阈值</h3><div class="threshold-labels"><label v-for="label in gestureLabels" :key="label">{{ label }}<input type="range" min="0.1" max="0.98" step="0.02" v-model.number="wordThresholds[label]"><span>{{ Number(wordThresholds[label]??0.6).toFixed(2) }}</span><button @click="applyLabelThreshold('set_word_threshold',label,wordThresholds[label])">设定</button></label></div><button class="small-button" @click="resetThresholds('reset_thresholds')">恢复默认值</button></div><div><h3>拼音逐字母阈值</h3><div class="threshold-labels letters"><label v-for="label in pinyinLabels" :key="label">{{ label }}<input type="range" min="0.1" max="0.98" step="0.02" v-model.number="letterThresholds[label]"><span>{{ Number(letterThresholds[label]??0.6).toFixed(2) }}</span><button @click="applyLabelThreshold('set_letter_threshold',label,letterThresholds[label])">设定</button></label></div><button class="small-button" @click="resetThresholds('reset_letter_thresholds')">恢复默认值</button></div></div><div class="settings-feedback" v-if="settingsMessage">{{ settingsMessage }}</div></div></details></section>
-        <footer class="page-footer"><span>GLOVE LEARNING INTELLIGENCE</span><span>来源：设备日志 · Agent trace · 教师评测标注</span></footer>
+        <footer class="page-footer"><span>MANILO 掌音 · LEARNING INTELLIGENCE</span><span>来源：设备日志 · Agent trace · 教师评测标注</span></footer>
       </main>
     </div>
   </script>

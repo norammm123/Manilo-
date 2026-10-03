@@ -58,6 +58,11 @@
         reconnectTimer: null,
         refreshTimer: null,
         socket: null,
+        observerLogs: [],
+        observerMessage: '',
+        observerScanning: false,
+        observerDraftInterval: 30,
+        observerConfig: { enabled: false, llm_enabled: false, llm_configured: false, interval_seconds: 30, llm_interval_seconds: 120, min_delta: 2, scans: 0, llm_calls: 0, llm_errors: 0, last_emit_ts: null, last_insight: null },
       };
     },
     computed: {
@@ -100,10 +105,14 @@
       finishedSessions() {
         return this.sessions.filter((session) => session.status === 'finished');
       },
+      observerRunning() {
+        return !!(this.observerConfig.enabled && this.connected);
+      },
     },
     mounted() {
       this.connect();
       this.refreshAll();
+      this.fetchObserverStatus().catch(() => {});
       this.$nextTick(() => {
         if (window.echarts) {
           this.charts.progress = echarts.init(document.getElementById('progressChart'));
@@ -135,7 +144,7 @@
     methods: {
       async refreshAll() {
         if (this.demoMode) return;
-        await Promise.allSettled([this.fetchStats(), this.fetchAnalytics(), this.fetchSessions(), this.fetchReports(), this.fetchAssistantStatus()]);
+        await Promise.allSettled([this.fetchStats(), this.fetchAnalytics(), this.fetchSessions(), this.fetchReports(), this.fetchAssistantStatus(), this.fetchObserverStatus()]);
       },
       async fetchStats() {
         const response = await fetch(`${this.apiBase}/api/learning/stats`);
@@ -166,6 +175,60 @@
         this.assistantConfigured = !!(status.chat_configured ?? status.configured);
         this.reportConfigured = !!(status.report_configured ?? status.configured);
         this.assistantModel = status.model || '';
+      },
+      async fetchObserverStatus() {
+        const response = await fetch(`${this.apiBase}/api/agent/observer`);
+        if (!response.ok) throw new Error(`observer ${response.status}`);
+        this.observerConfig = await response.json();
+        this.observerDraftInterval = this.observerConfig.interval_seconds;
+        if (!this.observerLogs.length && this.observerConfig.last_insight) {
+          this.observerLogs = [this.observerConfig.last_insight];
+        }
+      },
+      async updateObserver(patch) {
+        try {
+          const response = await fetch(`${this.apiBase}/api/agent/observer`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patch),
+          });
+          if (!response.ok) throw new Error(`observer ${response.status}`);
+          this.observerConfig = await response.json();
+          this.observerMessage = '已应用';
+        } catch (error) {
+          this.observerMessage = error.message || '设置失败';
+        }
+      },
+      toggleObserver() {
+        this.updateObserver({ enabled: !this.observerConfig.enabled });
+      },
+      toggleObserverLlm() {
+        this.updateObserver({ llm_enabled: !this.observerConfig.llm_enabled });
+      },
+      applyObserverInterval() {
+        this.updateObserver({ interval_seconds: Number(this.observerDraftInterval) });
+      },
+      async triggerObserverScan() {
+        if (this.observerScanning) return;
+        this.observerScanning = true;
+        this.observerMessage = '';
+        try {
+          const response = await fetch(`${this.apiBase}/api/agent/observer/tick`, { method: 'POST' });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || '扫描失败');
+          if (result.record) this.pushObserverLog(result.record);
+          await this.fetchObserverStatus();
+          this.observerMessage = result.emitted ? '已产出新观察' : '本次扫描无新增练习数据';
+        } catch (error) {
+          this.observerMessage = error.message || '扫描失败';
+        } finally {
+          this.observerScanning = false;
+        }
+      },
+      pushObserverLog(record) {
+        if (!record || !record.ts) return;
+        if (this.observerLogs.some((row) => row.ts === record.ts && row.decision === record.decision)) return;
+        this.observerLogs.unshift(record);
+        this.observerLogs = this.observerLogs.slice(0, 50);
       },
       formatSession(session) {
         const at = session.ended_at || session.started_at;
@@ -298,6 +361,7 @@
         if (envelope.type === 'init') {
           const initial = envelope;
           if (initial.status) this.updateStatus(initial.status);
+          this.observerLogs = (initial.agent_logs || []).slice(-50).reverse();
           this.conversations = [];
           const messages = (initial.conversation_messages?.length ? initial.conversation_messages : [
             ...(initial.asr_messages || []).map((item) => ({ ...item, role: 'learner' })),
@@ -324,6 +388,7 @@
           clearTimeout(this.refreshTimer);
           this.refreshTimer = setTimeout(() => this.fetchAnalytics().catch(() => {}), 300);
         }
+        if (envelope.type === 'agent_log' && envelope.data) this.pushObserverLog(envelope.data);
         if (envelope.type === 'learning_finished') {
           this.fetchSessions().catch(() => {});
           this.fetchReports().catch(() => {});
@@ -394,36 +459,36 @@
           { date: '09-30', sessions: 3, sentences: 9 }, { date: '10-01', sessions: 5, sentences: 13 },
           { date: '10-02', sessions: 6, sentences: 17 },
         ] : realDays.map((item) => ({ ...item, date: item.date.slice(5) }));
-        const axisStyle = { color: '#77839a', fontSize: 9 };
+        const axisStyle = { color: '#857357', fontSize: 9 };
         this.charts.progress.setOption({
           animationDuration: 550,
           grid: { left: 28, right: 13, top: 25, bottom: 25 },
-          tooltip: { trigger: 'axis', backgroundColor: '#1c2231', borderColor: '#393f53', textStyle: { color: '#e7e9f0', fontSize: 9 } },
+          tooltip: { trigger: 'axis', backgroundColor: '#FFFCF4', borderColor: '#E4D6BB', textStyle: { color: '#463823', fontSize: 9 } },
           legend: { show: false },
-          xAxis: { type: 'category', data: days.map((item) => item.date), axisLine: { lineStyle: { color: '#30384a' } }, axisTick: { show: false }, axisLabel: axisStyle },
-          yAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: '#252d3d', type: 'dashed' } }, axisLabel: axisStyle },
+          xAxis: { type: 'category', data: days.map((item) => item.date), axisLine: { lineStyle: { color: '#E4D6BB' } }, axisTick: { show: false }, axisLabel: axisStyle },
+          yAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: '#EDE1CB', type: 'dashed' } }, axisLabel: axisStyle },
           series: [
-            { name: '学习次数', type: 'bar', data: days.map((item) => item.sessions), barMaxWidth: 14, itemStyle: { color: '#9782f2', borderRadius: [4, 4, 0, 0] } },
-            { name: '完成句子', type: 'line', smooth: true, symbolSize: 5, data: days.map((item) => item.sentences), lineStyle: { width: 2, color: '#65d5dc' }, itemStyle: { color: '#65d5dc' }, areaStyle: { color: 'rgba(101,213,220,.07)' } },
+            { name: '学习次数', type: 'bar', data: days.map((item) => item.sessions), barMaxWidth: 14, itemStyle: { color: '#53442C', borderRadius: [4, 4, 0, 0] } },
+            { name: '完成句子', type: 'line', smooth: true, symbolSize: 5, data: days.map((item) => item.sentences), lineStyle: { width: 2, color: '#F57E65' }, itemStyle: { color: '#F57E65' }, areaStyle: { color: 'rgba(245,126,101,.10)' } },
           ],
         }, true);
         const vocabulary = this.vocabulary.slice(0, 7);
         this.charts.vocabulary.setOption({
           animationDuration: 550,
           grid: { left: 45, right: 12, top: 16, bottom: 22 },
-          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#1c2231', borderColor: '#393f53', textStyle: { color: '#e7e9f0', fontSize: 9 } },
-          xAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: '#252d3d', type: 'dashed' } }, axisLabel: axisStyle },
-          yAxis: { type: 'category', inverse: true, data: vocabulary.map((item) => item.label), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { ...axisStyle, color: '#bac2d3' } },
-          series: [{ name: '识别次数', type: 'bar', data: vocabulary.map((item) => item.exposures), barMaxWidth: 12, itemStyle: { color: '#66cbd7', borderRadius: [0, 4, 4, 0] } }],
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#FFFCF4', borderColor: '#E4D6BB', textStyle: { color: '#463823', fontSize: 9 } },
+          xAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: '#EDE1CB', type: 'dashed' } }, axisLabel: axisStyle },
+          yAxis: { type: 'category', inverse: true, data: vocabulary.map((item) => item.label), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { ...axisStyle, color: '#53442C' } },
+          series: [{ name: '识别次数', type: 'bar', data: vocabulary.map((item) => item.exposures), barMaxWidth: 12, itemStyle: { color: '#7C6B52', borderRadius: [0, 4, 4, 0] } }],
         }, true);
         const followReadRows = this.followReadByPhrase.slice(0, 7);
         this.charts.followRead.setOption({
           animationDuration: 450,
           grid: { left: 42, right: 18, top: 7, bottom: 18 },
-          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#1c2231', borderColor: '#393f53', textStyle: { color: '#e7e9f0', fontSize: 9 }, formatter: (items) => `${items[0].name} · 转写成功率 ${items[0].value}%` },
-          xAxis: { type: 'value', min: 0, max: 100, axisLabel: { ...axisStyle, formatter: '{value}%' }, splitLine: { lineStyle: { color: '#252d3d', type: 'dashed' } } },
-          yAxis: { type: 'category', inverse: true, data: followReadRows.map((item) => item.label), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { ...axisStyle, color: '#bac2d3' } },
-          series: [{ name: '转写成功率', type: 'bar', data: followReadRows.map((item) => Math.round((item.success_rate ?? 0) * 100)), barMaxWidth: 9, itemStyle: { color: '#a08bff', borderRadius: [0, 4, 4, 0] } }],
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#FFFCF4', borderColor: '#E4D6BB', textStyle: { color: '#463823', fontSize: 9 }, formatter: (items) => `${items[0].name} · 转写成功率 ${items[0].value}%` },
+          xAxis: { type: 'value', min: 0, max: 100, axisLabel: { ...axisStyle, formatter: '{value}%' }, splitLine: { lineStyle: { color: '#EDE1CB', type: 'dashed' } } },
+          yAxis: { type: 'category', inverse: true, data: followReadRows.map((item) => item.label), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { ...axisStyle, color: '#53442C' } },
+          series: [{ name: '转写成功率', type: 'bar', data: followReadRows.map((item) => Math.round((item.success_rate ?? 0) * 100)), barMaxWidth: 9, itemStyle: { color: '#F57E65', borderRadius: [0, 4, 4, 0] } }],
         }, true);
       },
       resizeCharts() {

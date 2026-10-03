@@ -50,6 +50,16 @@ OBSERVER_MIN_DELTA = int(os.environ.get("OBSERVER_MIN_DELTA", "2"))        # 新
 OBSERVER_MAX_TOKENS = int(os.environ.get("OBSERVER_MAX_TOKENS", "6000"))   # 推理模型需留足 reasoning 预算
 OBSERVER_PHASE = "观察"
 
+# 运行时可调参数: 初值取自上面环境变量, B 端控制面板可在线修改(只影响本次进程, 不落盘)
+_observer_config = {
+    "enabled": OBSERVER_ENABLED,
+    "llm_enabled": OBSERVER_LLM,
+    "interval": OBSERVER_INTERVAL,
+    "llm_interval": OBSERVER_LLM_INTERVAL,
+    "min_delta": OBSERVER_MIN_DELTA,
+}
+_observer_lock = threading.Lock()
+
 
 def load_thresholds():
     """加载持久化的阈值设置"""
@@ -885,7 +895,29 @@ def api_learning_finish():
     if not session:
         return jsonify({"error": "learning session not found"}), 404
     if session.get("event") == "finish":
-        return jsonify({"error": "learning session already finished"}), 409
+        # 幂等：这条会话已经结束过，直接复用已保存的结果返回 200。
+        # 以前这里返回 409，前端收到报错后不会重置会话状态，导致按钮永久卡在
+        # 「结束学习并生成报告」上再也点不动（生成报告较慢时刷新/重复点击就会触发）。
+        ended_at = float(session.get("ended_at") or time.time())
+        saved = next((r for r in reversed(_read_jsonl(REPORTS_FILE))
+                      if r.get("session_id") == session_id), None)
+        fallback = session.get("report") or {}
+        report_metrics = dict(saved.get("metrics") if saved and saved.get("metrics")
+                              else {k: v for k, v in fallback.items() if k != "events"})
+        return jsonify({
+            "session_id": session_id,
+            "started_at": float(session.get("started_at", 0)),
+            "ended_at": ended_at,
+            "mode": session.get("mode", "gesture"),
+            "report": report_metrics,
+            "agent_used": bool(saved.get("agent_used")) if saved else False,
+            "agent_report": (saved.get("summary", "") if saved and saved.get("agent_used") else ""),
+            "agent_error": (saved.get("agent_error") or None) if saved else None,
+            "summary": saved.get("summary", "") if saved else "学习日志已保存。",
+            "sessions_today": sum(1 for s in _learning_sessions()
+                                   if float(s.get("started_at", 0)) >= _day_start()),
+            "already_finished": True,
+        })
     ended_at = time.time()
     metrics = _session_metrics(session, ended_at)
     finish_event = {
@@ -1105,7 +1137,22 @@ _observer_state = {
 }
 
 
-def _observer_window():
+def _observer_status():
+    """返回当前观察 Agent 的运行状态快照。"""
+    return {
+        "enabled": _observer_config["enabled"],
+        "phase": OBSERVER_PHASE,
+        "interval_seconds": _observer_config["interval"],
+        "llm_interval_seconds": _observer_config["llm_interval"],
+        "min_delta": _observer_config["min_delta"],
+        "llm_enabled": _observer_config["llm_enabled"],
+        "llm_configured": bool(LLM_API_URL and LLM_API_KEY and LLM_MODEL),
+        "scans": _observer_state["scans"],
+        "llm_calls": _observer_state["llm_calls"],
+        "llm_errors": _observer_state["llm_errors"],
+        "last_emit_ts": _observer_state["last_emit_ts"] or None,
+        "last_insight": _observer_state["last_insight"],
+    }
     """确定分析窗口: 优先"进行中的学习会话", 否则"今天最新的会话", 再否则"今日全部日志"。
 
     只取今天开始的数据, 避免把昨天的旧记录当成实时进度重复播报。
@@ -1234,7 +1281,11 @@ def _observer_llm_advice(label, snapshot):
     ], max_tokens=OBSERVER_MAX_TOKENS)
 
 
-def _observer_tick():
+def _observer_tick(force=False):
+    """扫描一次。force=True 时忽略"新增量"门槛(供 B 端手动扫描/演示)。
+
+    返回产出的 agent_log 记录, 无产出时返回 None。
+    """
     label, start, end, session_id, _mode = _observer_window()
     snapshot = _observer_collect(start, end, session_id)
     state = _observer_state
@@ -1246,16 +1297,16 @@ def _observer_tick():
     if state["window_key"] != window_key:
         state["window_key"] = window_key
         state["last_count"] = 0
-    if snapshot["total"] - state["last_count"] < OBSERVER_MIN_DELTA:
+    if not force and snapshot["total"] - state["last_count"] < _observer_config["min_delta"]:
         return None
 
     facts = _observer_facts(snapshot)
     decision = _observer_local_advice(snapshot)
     source = "本地"
-    configured = bool(OBSERVER_LLM and LLM_API_URL and LLM_API_KEY and LLM_MODEL)
+    configured = bool(_observer_config["llm_enabled"] and LLM_API_URL and LLM_API_KEY and LLM_MODEL)
     # 注意: last_llm_ts 初值 0, 因此进程内首次产出一定会调一次模型, 之后才按间隔限流。
     # 想彻底不调用模型(零 token 成本)请设 OBSERVER_LLM=0。
-    if configured and time.time() - state["last_llm_ts"] >= OBSERVER_LLM_INTERVAL:
+    if configured and time.time() - state["last_llm_ts"] >= _observer_config["llm_interval"]:
         try:
             decision = _observer_llm_advice(label, snapshot)
             source = "模型"
@@ -1284,12 +1335,14 @@ def _observer_tick():
 
 
 def _observer_loop():
-    has_model = bool(OBSERVER_LLM and LLM_API_URL and LLM_API_KEY and LLM_MODEL)
-    print(f"[观察Agent] 已启动: 每 {OBSERVER_INTERVAL:g}s 扫描一次, "
-          f"模型建议至少间隔 {OBSERVER_LLM_INTERVAL:g}s"
+    has_model = bool(_observer_config["llm_enabled"] and LLM_API_URL and LLM_API_KEY and LLM_MODEL)
+    print(f"[观察Agent] 已启动: 每 {_observer_config['interval']:g}s 扫描一次, "
+          f"模型建议至少间隔 {_observer_config['llm_interval']:g}s"
           + ("" if has_model else " (仅本地分析)"))
     while True:
-        time.sleep(OBSERVER_INTERVAL)
+        time.sleep(_observer_config["interval"])
+        if not _observer_config["enabled"]:
+            continue
         try:
             _observer_tick()
         except Exception as exc:
@@ -1297,7 +1350,7 @@ def _observer_loop():
 
 
 def start_observer_agent():
-    if not OBSERVER_ENABLED:
+    if not _observer_config["enabled"]:
         print("[观察Agent] 已关闭 (OBSERVER_AGENT=0)")
         return None
     thread = threading.Thread(target=_observer_loop, name="practice-observer", daemon=True)
@@ -1305,23 +1358,36 @@ def start_observer_agent():
     return thread
 
 
-@app.route("/api/agent/observer")
+@app.route("/api/agent/observer", methods=["GET", "POST"])
 def api_agent_observer():
-    """观察 Agent 运行状态, 供 B 端展示。"""
-    return jsonify({
-        "enabled": OBSERVER_ENABLED,
-        "phase": OBSERVER_PHASE,
-        "interval_seconds": OBSERVER_INTERVAL,
-        "llm_interval_seconds": OBSERVER_LLM_INTERVAL,
-        "min_delta": OBSERVER_MIN_DELTA,
-        "llm_enabled": OBSERVER_LLM,
-        "llm_configured": bool(LLM_API_URL and LLM_API_KEY and LLM_MODEL),
-        "scans": _observer_state["scans"],
-        "llm_calls": _observer_state["llm_calls"],
-        "llm_errors": _observer_state["llm_errors"],
-        "last_emit_ts": _observer_state["last_emit_ts"] or None,
-        "last_insight": _observer_state["last_insight"],
-    })
+    """观察 Agent 状态(GET) / 在线调整参数(POST), 供 B 端控制面板。"""
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+        if "enabled" in payload:
+            _observer_config["enabled"] = bool(payload["enabled"])
+        if "llm_enabled" in payload:
+            _observer_config["llm_enabled"] = bool(payload["llm_enabled"])
+        if "interval_seconds" in payload:
+            try:
+                _observer_config["interval"] = max(5.0, min(600.0, float(payload["interval_seconds"])))
+            except (TypeError, ValueError):
+                pass
+        if "min_delta" in payload:
+            try:
+                _observer_config["min_delta"] = max(1, min(100, int(payload["min_delta"])))
+            except (TypeError, ValueError):
+                pass
+    return jsonify(_observer_status())
+
+
+@app.route("/api/agent/observer/tick", methods=["POST"])
+def api_agent_observer_tick():
+    """手动触发一次扫描; force=True 忽略新增量门槛, 便于演示时立即看到产出。"""
+    try:
+        record = _observer_tick(force=True)
+    except Exception as exc:
+        return jsonify({"emitted": False, "record": None, "error": f"扫描失败: {exc}", **_observer_status()}), 500
+    return jsonify({"emitted": bool(record), "record": record, **_observer_status()})
 
 
 # ==== 主入口 ====

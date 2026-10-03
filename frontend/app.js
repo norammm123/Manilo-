@@ -44,7 +44,7 @@
         letterThresholds: {},
         settingsLoaded: false,
         settingsMessage: '',
-        gestureLabels: ['不','你','叫','哪儿','在','天','好','妈妈','很','我','打电话','早上','是','有','来','要','认识'],
+        gestureLabels: ['不','你','叫','在','天','好','妈妈','很','我','打电话','早上','是','有','来','要','认识'],
         pinyinLabels: ['A','B','C','CH','D','E','F','G','H','I','J','K','L','M','N','NG','O','P','Q','R','S','SH','T','U','V','W','X','Y','Z','ZH'],
         settingFields: [
           { key: 'confidence_thresh', label: '置信度阈值', min: 0.1, max: 0.95, step: 0.05, command: 'set_threshold' },

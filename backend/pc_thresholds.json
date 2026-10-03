@@ -1,0 +1,10 @@
+{
+  "confidence_thresh": 0.6,
+  "min_margin": 0.1,
+  "letter_cooldown": 0.8,
+  "word_thresholds": {
+  },
+  "letter_thresholds": {
+    "A": 0.26
+  }
+}

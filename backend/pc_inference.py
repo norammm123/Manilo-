@@ -847,6 +847,9 @@ def main():
                     label, conf, margin = do_inference(g_net, x, g_labels)
                 else:
                     continue  # 手势模型未加载, 跳过
+                # 过滤误识别率高的词
+                if label == "哪儿":
+                    continue
                 word = word_tracker.feed(label, conf, margin)
 
                 elapsed = (time.perf_counter() - t0) * 1000

@@ -27,6 +27,14 @@
   <img src="demo_thumb_new.jpg" alt="Manilo掌音 产品演示" width="600">
 </p>
 
+### 路演材料与讲解
+
+| 材料 | 路径 | 说明 |
+|------|------|------|
+| **路演讲解 HTML** | [`pitch/index.html`](./pitch/index.html) | 可直接浏览器打开的完整路演演示页 |
+| **路演报告 PPT** | [`pitch/assets/`](./pitch/assets/) | 路演报告素材（Logo、Demo图等） |
+| **16:9 展示封面** | [`showcase.html`](./showcase.html) | 比赛现场大屏展示用封面 |
+
 **演示视频**: [B站链接 / 百度网盘链接] *(待补充)*
 
 ---
@@ -178,8 +186,26 @@ $env:LLM_API_KEY = "your-api-key"
 | `frontend/` | B 端教师/家长看板（Vue 3 + ECharts） |
 | `hardware/` | STM32F4 硬件工程代码 |
 | `docs/` | 接口文档、配置说明 |
-| `pitch/` | 路演 HTML 演示与报告材料 |
+| `pitch/` | **路演 HTML 演示与报告材料**（见下方详细说明） |
 | `showcase.html` | 16:9 路演封面 |
+
+### 路演材料目录 (`pitch/`)
+
+```
+pitch/
+├── index.html              # 路演讲解 HTML（浏览器直接打开）
+└── assets/
+    ├── logo.png            # 队标原图
+    ├── logo-mark.png       # 队标图标
+    ├── logo-mono.png       # 单色队标
+    ├── demo-1-full.png     # Demo 截图 1
+    ├── demo-2-full.png     # Demo 截图 2
+    ├── demo-3.jpg          # Demo 截图 3
+    ├── demo-mini.png       # 缩略图
+    └── README.txt          # 素材说明
+```
+
+> 评委可直接打开 [`pitch/index.html`](./pitch/index.html) 查看完整路演讲解。
 
 ---
 

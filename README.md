@@ -24,7 +24,7 @@
 ## 二、项目演示
 
 <p align="center">
-  <img src="demo_thumb.jpg" alt="Manilo掌音 产品演示" width="600">
+  <img src="demo_thumb_new.jpg" alt="Manilo掌音 产品演示" width="600">
 </p>
 
 **演示视频**: [B站链接 / 百度网盘链接] *(待补充)*

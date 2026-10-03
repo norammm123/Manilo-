@@ -47,25 +47,93 @@
 
       <!-- 主动发声模式 -->
       <view class="training-content" wx:if="{{currentMode === 'speak'}}">
-        <view class="speak-ring">
+        <view class="speak-ring" wx:if="{{!isRecording}}">
           <view class="ring-inner">
             <text class="ring-score">{{score || '--'}}</text>
             <text class="ring-label">准确度</text>
           </view>
         </view>
+        <view class="recording-box" wx:if="{{isRecording}}">
+          <view class="recording-pulse"></view>
+          <text class="recording-text">录音中，请跟读「{{targetWord}}」，说完再点一次停止</text>
+        </view>
         <view class="speak-word">{{targetWord || '点击开始跟读'}}</view>
-        <button class="btn btn-primary" bindtap="startRecord">{{isRecording ? '录音中...' : '🎤 开始跟读'}}</button>
+        <view class="heard-text" wx:if="{{recordingText}}">
+          <text>{{recordingText}}</text>
+        </view>
+        <view class="btn-row">
+          <button class="btn btn-secondary" bindtap="playSound">🔊 听示范</button>
+          <button class="btn {{isRecording ? 'btn-danger' : 'btn-primary'}}" bindtap="startRecord">
+            {{isRecording ? '⏹ 停止录音' : '🎤 开始跟读'}}
+          </button>
+        </view>
+        <view class="asr-tip" wx:if="{{!asrReady}}">
+          <text>未配置语音识别插件，当前按音量检测评分</text>
+        </view>
       </view>
 
-      <!-- 对话社交模式 -->
+      <!-- 跟读剧本模式 -->
       <view class="training-content" wx:if="{{currentMode === 'chat'}}">
-        <view class="chat-area">
-          <view class="chat-message" wx:for="{{chatList}}" wx:key="index">
-            <view class="chat-avatar {{item.type}}">{{item.type === 'me' ? '我' : '师'}}</view>
-            <view class="chat-bubble {{item.type}}">{{item.text}}</view>
+
+        <!-- 情景选择 -->
+        <block wx:if="{{!currentScene}}">
+          <view class="scene-hint">选择一个情景开始跟读练习</view>
+          <view class="scene-grid">
+            <view class="scene-card" wx:for="{{scriptScenes}}" wx:key="name" bindtap="chooseScene" data-idx="{{index}}">
+              <text class="scene-icon">{{item.icon}}</text>
+              <text class="scene-name">{{item.name}}</text>
+              <text class="scene-count">{{item.sentences.length}} 句</text>
+            </view>
+          </view>
+        </block>
+
+        <!-- 跟读中 -->
+        <block wx:if="{{currentScene && !scriptDone}}">
+          <view class="scene-head">
+            <button class="back-btn" bindtap="backToScenes">‹ 情景</button>
+            <text class="scene-title">{{currentScene.name}}</text>
+            <text class="script-count">{{scriptIndex + 1}} / {{scriptSentences.length}}</text>
+          </view>
+          <view class="script-bar">
+            <view class="script-fill" style="width: {{(scriptIndex / scriptSentences.length) * 100}}%;"></view>
+          </view>
+
+          <view class="script-word">
+            <text class="script-word-text">{{scriptSentences[scriptIndex].text}}</text>
+          </view>
+          <view class="heard-text" wx:if="{{recordingText}}">
+            <text>{{recordingText}}</text>
+          </view>
+          <view class="recording-box" wx:if="{{isRecording}}">
+            <view class="recording-pulse"></view>
+            <text class="recording-text">录音中，跟读「{{scriptSentences[scriptIndex].text}}」，说完再点一次停止</text>
+          </view>
+          <view class="btn-row">
+            <button class="btn btn-secondary" bindtap="playScriptSound">🔊 听示范</button>
+            <button class="btn {{isRecording ? 'btn-danger' : 'btn-primary'}}" bindtap="startRecord">
+              {{isRecording ? '⏹ 停止录音' : '🎤 开始跟读'}}
+            </button>
+          </view>
+          <button class="btn btn-secondary" bindtap="nextScript" disabled="{{isRecording}}" style="margin-top:16rpx">
+            {{scriptIndex === scriptSentences.length - 1 ? '完成剧本' : '下一句 →'}}
+          </button>
+        </block>
+
+        <!-- 完成汇总 -->
+        <view class="script-summary" wx:if="{{scriptDone}}">
+          <text class="summary-title">🎉 剧本完成！</text>
+          <text class="summary-scene">{{currentScene.name}} · 平均 {{scriptAvg}} 分</text>
+          <view class="script-scores" wx:if="{{scriptScores.length}}">
+            <view class="score-chip" wx:for="{{scriptSentences}}" wx:key="index">
+              <text class="chip-text">{{item.text}}</text>
+              <text class="chip-score">{{scriptScores[index] || 0}}</text>
+            </view>
+          </view>
+          <view class="btn-row">
+            <button class="btn btn-primary" bindtap="restartScript">再练一遍</button>
+            <button class="btn btn-secondary" bindtap="backToScenes">换情景</button>
           </view>
         </view>
-        <button class="btn btn-primary" bindtap="startChat">开始练习</button>
       </view>
     </view>
 

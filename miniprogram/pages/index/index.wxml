@@ -16,6 +16,11 @@
   </view>
 
   <scroll-view class="content" scroll-y>
+    <!-- 网络错误横幅 -->
+    <view class="net-banner" wx:if="{{netError}}">
+      <text>⚠️ {{netError}}</text>
+    </view>
+
     <!-- 设备状态卡片 -->
     <view class="card device-card" wx:if="{{!backendConnected}}">
       <view class="card-title">后端未连接</view>

@@ -8,13 +8,14 @@
     <!-- 用户信息 -->
     <view class="card user-card">
       <view class="user-avatar">
-        <image src="/static/avatar.png" mode="aspectFill" class="avatar-img"></image>
+        <image wx:if="{{userInfo.avatar}}" src="{{userInfo.avatar}}" mode="aspectFill" class="avatar-img"></image>
+        <image wx:else src="/static/avatar.png" mode="aspectFill" class="avatar-img"></image>
       </view>
-      <view class="user-name">康复训练学员</view>
-      <view class="user-id">ID: MNL20241002001</view>
+      <view class="user-name">{{userInfo.nickname || '康复训练学员'}}</view>
+      <view class="user-id">{{userInfo.loginType === 'guest' ? '游客模式' : 'ID: ' + userId}}</view>
       <view class="user-level">
         <text class="level-badge">初级学员</text>
-        <text class="level-progress">训练第 12 天</text>
+        <text class="level-progress">训练第 {{trainDays}} 天</text>
       </view>
     </view>
 
@@ -82,6 +83,15 @@
         <view class="menu-content">
           <text class="menu-title">反馈建议</text>
           <text class="menu-desc">帮助我们改进产品</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="logout" wx:if="{{isLogin}}">
+        <view class="menu-icon" style="background:#FEF2F2;"><text style="color:#EF4444;font-size:36rpx;line-height:80rpx;">⎋</text></view>
+        <view class="menu-content">
+          <text class="menu-title" style="color:#EF4444;">退出登录</text>
+          <text class="menu-desc">返回登录页面</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>

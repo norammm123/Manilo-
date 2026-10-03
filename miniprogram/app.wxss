@@ -139,6 +139,16 @@ page {
   color: var(--primary);
 }
 
+.btn-danger {
+  background: #EF4444;
+  color: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(239,68,68,0.3);
+}
+
+.btn-danger:active {
+  background: #DC2626;
+}
+
 .btn-large {
   width: 100%;
   height: 96rpx;

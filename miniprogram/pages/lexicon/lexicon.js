@@ -41,7 +41,7 @@ Page({
       return
     }
     const audio = wx.createInnerAudioContext()
-    audio.src = '/static/audio/' + word + '.mp3'
+    audio.src = '/static/audio/' + word + '.m4a'
     audio.onError(() => wx.showToast({ title: '发音加载失败', icon: 'none' }))
     audio.play()
   }

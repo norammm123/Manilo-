@@ -1,5 +1,7 @@
 {
   "pages": [
+    "pages/login/login",
+    "pages/profile-edit/profile-edit",
     "pages/index/index",
     "pages/device/device",
     "pages/training/training",

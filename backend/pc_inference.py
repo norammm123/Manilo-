@@ -38,6 +38,10 @@ DEVICE_ID = os.environ.get('DEVICE_ID', 'board1')
 # === 串口 ===
 SERIAL_PORT = os.environ.get('SERIAL_PORT', 'COM10')
 SERIAL_BAUD = int(os.environ.get('SERIAL_BAUD', '115200'))
+SERIAL_RECONNECT = os.environ.get('SERIAL_RECONNECT', '1') == '1'
+SERIAL_REOPEN_MIN_SEC = float(os.environ.get('SERIAL_REOPEN_MIN_SEC', '1.0'))
+SERIAL_IDLE_REOPEN_SEC = float(os.environ.get('SERIAL_IDLE_REOPEN_SEC', '30'))
+SERIAL_CLEAR_DTR = os.environ.get('SERIAL_CLEAR_DTR', '1') == '1'
 
 # === 推理 ===
 NUM_FEATURES = 11
@@ -201,32 +205,75 @@ class SerialIO:
         self.buf = bytearray()
         self.frame_ok = 0
         self.frame_fail = 0
+        self.bytes_rx = 0
         self._mode = 'gesture'  # 默认手势模式, 模式字节可覆盖
+        self._lock = threading.RLock()
+        self._last_byte = 0.0
+        self._last_reopen = 0.0
+        self.reconnects = 0
 
     def open(self):
-        try:
-            import serial
-            self.ser = serial.Serial(
-                port=self.port, baudrate=self.baud, timeout=0.01,
-                bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE)
-            print(f'[串口] {self.port} @ {self.baud} (pyserial)')
-            return True
-        except Exception as e:
-            print(f'[串口] 打开失败: {e}')
-            return False
+        with self._lock:
+            self.ser = None
+            try:
+                import serial
+                self.ser = serial.Serial(
+                    port=self.port, baudrate=self.baud, timeout=0.01,
+                    bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE,
+                    stopbits=serial.STOPBITS_ONE,
+                    rtscts=False, dsrdtr=False, xonxoff=False)
+                # 某些 USB-TTL 板把 DTR/RTS 接到模块的 EN/RESET, 默认拉高会把模块按住不发数据
+                if SERIAL_CLEAR_DTR:
+                    try:
+                        self.ser.dtr = False
+                        self.ser.rts = False
+                    except Exception:
+                        pass
+                self._last_byte = time.time()
+                print(f'[串口] {self.port} @ {self.baud} (pyserial)')
+                return True
+            except Exception as e:
+                self.ser = None
+                print(f'[串口] 打开失败: {e}')
+                return False
+
+    def _reopen(self, reason):
+        """I/O 失败或长时间无数据时重开端口。
+
+        Windows 上 USB 转串口掉线/重枚举后, 旧句柄的读写会一直报
+        Access Denied(PermissionError 13); 只有 close+重开才能恢复。
+        """
+        with self._lock:
+            now = time.time()
+            if now - self._last_reopen < SERIAL_REOPEN_MIN_SEC:
+                return
+            self._last_reopen = now
+            self.reconnects += 1
+            print(f'[串口] {reason} → 重连 {self.port} (第 {self.reconnects} 次)')
+            try:
+                if self.ser is not None:
+                    self.ser.close()
+            except Exception:
+                pass
+            self.ser = None
+            self.buf.clear()
+            time.sleep(0.3)
+            self.open()
 
     def _read_bytes(self):
-        try:
-            if self.ser is None:
-                return
-            n = self.ser.in_waiting
-            if n > 0:
-                data = self.ser.read(n)
-                if data:
-                    self.buf.extend(data)
-        except Exception:
-            pass
+        if self.ser is None:
+            return
+        with self._lock:
+            try:
+                n = self.ser.in_waiting
+                if n > 0:
+                    data = self.ser.read(n)
+                    if data:
+                        self.buf.extend(data)
+                        self.bytes_rx += len(data)
+                        self._last_byte = time.time()
+            except Exception as e:
+                self._reopen(f'读取异常 {e.__class__.__name__}')
 
     def read_frame(self):
         """返回 (mode: str, frame: list) 或 (None, None)
@@ -236,6 +283,15 @@ class SerialIO:
           数据帧:   0xAA [ASCII CSV 11值] 0xBB
         CSV示例: 1845,-320,1200,890,-450,123,456,789,10,-20,30
         """
+        if SERIAL_RECONNECT and SERIAL_IDLE_REOPEN_SEC > 0:
+            now = time.time()
+            if self.ser is None:
+                if now - self._last_reopen > SERIAL_IDLE_REOPEN_SEC:
+                    self._reopen('端口未打开')
+            elif (now - self._last_byte > SERIAL_IDLE_REOPEN_SEC
+                  and now - self._last_reopen > SERIAL_IDLE_REOPEN_SEC):
+                self._reopen(f'{SERIAL_IDLE_REOPEN_SEC:g}s 无数据')
+
         self._read_bytes()
 
         # 清除前导零
@@ -336,18 +392,22 @@ class SerialIO:
         self._write_raw(packet)
 
     def _write_raw(self, data):
-        try:
-            if self.ser is not None:
+        if self.ser is None:
+            return
+        with self._lock:
+            try:
                 self.ser.write(bytes(data))
-        except Exception as e:
-            print(f'[串口] 写入失败: {e}')
+            except Exception as e:
+                self._reopen(f'写入失败 {e.__class__.__name__}')
 
     def close(self):
-        if self.ser is not None:
-            try:
-                self.ser.close()
-            except Exception:
-                pass
+        with self._lock:
+            if self.ser is not None:
+                try:
+                    self.ser.close()
+                except Exception:
+                    pass
+                self.ser = None
 
 
 # ============================================================
@@ -622,6 +682,8 @@ def main():
                         'mode': current_mode,
                         'frame_ok': ser.frame_ok,
                         'frame_fail': ser.frame_fail,
+                        'ser_bytes_rx': ser.bytes_rx,
+                        'ser_reconnects': ser.reconnects,
                     }, ensure_ascii=False),
                     qos=1)
 
@@ -856,7 +918,8 @@ def main():
             mqtt.stop()
         avg_lat = total_latency / max(pred_count, 1)
         print(f'\n[统计] 推理{pred_count}次, 平均{avg_lat:.1f}ms')
-        print(f'[串口] 成功帧:{ser.frame_ok} 失败帧:{ser.frame_fail}')
+        print(f'[串口] 成功帧:{ser.frame_ok} 失败帧:{ser.frame_fail} '
+              f'收到字节:{ser.bytes_rx} 重连:{ser.reconnects}')
         print('已退出')
 
 
@@ -874,6 +937,8 @@ if __name__ == '__main__':
                     help='语音识别引擎: auto(云优先+本地回退)/cloud(百度)/local(whisper)')
     ap.add_argument('--voice', action='store_true',
                     help='启动即开麦做语音识别, 不等 F4 的 0xFE; 串口打不开也可运行')
+    ap.add_argument('--mic', default=os.environ.get('ASR_INPUT_DEVICE', ''),
+                    help='录音设备: 序号或名称子串(如 "智音"); 空=系统默认')
     ap.add_argument('--selftest', action='store_true', help='仅加载模型做假推理后退出')
     args = ap.parse_args()
 
@@ -884,6 +949,8 @@ if __name__ == '__main__':
     DEVICE_ID = args.device_id
     ASR_ENGINE = args.engine
     VOICE_ONLY = args.voice
+    if args.mic:
+        os.environ['ASR_INPUT_DEVICE'] = args.mic
     if args.no_mqtt:
         MQTT_ENABLE = False
 

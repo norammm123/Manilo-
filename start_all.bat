@@ -9,6 +9,8 @@ set "WEB_PORT=5000"
 set "ADMIN_PORT=5174"
 set "DEVICE_ID=board1"
 set "SERIAL_PORT=COM7"
+set "ASR_SILENCE_RMS=0.02"
+set "ASR_MODEL_SIZE=medium"
 set "PYTHON=D:\Anaconda_envs\envs\pytorch\python.exe"
 REM ===========================================
 

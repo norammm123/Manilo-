@@ -17,17 +17,80 @@
 依赖: sounddevice; 本地引擎额外需要 faster-whisper (首次需联网下模型)。
 """
 import os
+import sys
 import threading
+from collections import deque
 
 import numpy as np
 
+# 设备名里带 ® 等 GBK 无法编码的字符, 直接 print 会 UnicodeEncodeError 把线程打死。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(errors='replace')
+    except Exception:
+        pass
+
 SAMPLE_RATE = 16000
 BLOCK_FRAMES = 1600            # 0.1s @ 16kHz
-SILENCE_RMS = 0.012            # 归一化幅度静音阈值 (按环境可调)
+SILENCE_RMS = float(os.environ.get('ASR_SILENCE_RMS', '0.004'))  # 归一化幅度静音阈值
 SPEECH_START_BLOCKS = 3        # 连续 0.3s 超阈值 → 说话开始
+PRE_ROLL_BLOCKS = 5            # 起音补偿: 触发时把前 0.5s 一并带上, 避免吃掉字头
 SILENCE_END_BLOCKS = 8         # 连续 0.8s 静音 → 一句结束
 MIN_SPEECH_SEC = 0.4           # 过短段丢弃
 MAX_SPEECH_SEC = 15.0          # 单段上限, 防止无限累积
+LEVEL_DEBUG = os.environ.get('ASR_LEVEL_DEBUG', '').strip().lower() not in ('', '0', 'false', 'off', 'no')
+# 未指定设备时优先选内置麦克风阵列的线索 (Intel 智音等); 命中即用, 否则回退系统默认。
+BUILTIN_MIC_HINTS = ('智音', 'Smart Sound')
+
+
+def _resolve_input_device():
+    """决定录音设备。
+
+    ASR_INPUT_DEVICE: 数字=设备序号, 其它=名称子串(不区分大小写)。
+    未设置则自动优先内置麦克风阵列(BUILTIN_MIC_HINTS), 都没有才用系统默认。
+    返回 (device, name); device=None 表示系统默认。
+    注意设备序号在插拔设备后会漂移, 所以优先按名称匹配。
+    """
+    try:
+        import sounddevice as sd
+    except Exception:
+        return None, '系统默认'
+
+    spec = os.environ.get('ASR_INPUT_DEVICE', '').strip()
+    if spec:
+        try:
+            idx = int(spec)
+            return idx, sd.query_devices(idx)['name']
+        except ValueError:
+            pass
+        except Exception as e:
+            print(f'[ASR] 设备序号 {spec} 无效: {e}')
+            return None, '系统默认'
+        needle = spec.lower()
+        for idx, info in enumerate(sd.query_devices()):
+            if info['max_input_channels'] > 0 and needle in info['name'].lower():
+                return idx, info['name']
+        print(f'[ASR] 未找到匹配 "{spec}" 的输入设备, 改用默认')
+
+    for hint in BUILTIN_MIC_HINTS:
+        needle = hint.lower()
+        for idx, info in enumerate(sd.query_devices()):
+            if info['max_input_channels'] > 0 and needle in info['name'].lower():
+                print(f'[ASR] 自动选用内置麦克风: [{idx}] {info["name"]}')
+                return idx, info['name']
+    return None, '系统默认'
+
+
+def _open_input(sd, device):
+    """打开并启动 16kHz 单声道输入流, 失败返回 None。"""
+    try:
+        stream = sd.InputStream(device=device, samplerate=SAMPLE_RATE, channels=1,
+                                dtype='float32', blocksize=BLOCK_FRAMES)
+        stream.start()
+        return stream
+    except Exception as e:
+        print(f'[ASR] 打开输入设备 {device} 失败: {e}')
+        return None
 
 
 class SpeechRecognizer:
@@ -133,7 +196,8 @@ class SpeechRecognizer:
             return ''
         segments, _ = self._model.transcribe(
             audio, language=self.language, beam_size=5,
-            vad_filter=False, condition_on_previous_text=False)
+            vad_filter=False, condition_on_previous_text=False,
+            initial_prompt='以下是普通话的句子。')
         self.last_engine = 'local'
         return "".join(seg.text for seg in segments).strip()
 
@@ -144,9 +208,23 @@ class SpeechRecognizer:
             print(f"[ASR] sounddevice 不可用: {e}")
             self._running = False
             return
-        print("[ASR] 麦克风监听中...")
+
+        device, dev_name = _resolve_input_device()
+        stream = _open_input(sd, device)
+        if stream is None and device is not None:
+            print("[ASR] 指定设备打开失败, 回退系统默认")
+            device, dev_name = None, '系统默认'
+            stream = _open_input(sd, None)
+        if stream is None:
+            print("[ASR] 麦克风打开失败")
+            self._running = False
+            return
+        label = f"[{device}] {dev_name}" if device is not None else dev_name
+        print(f"[ASR] 麦克风监听中... 设备={label}, 静音阈值={SILENCE_RMS:g}"
+              + (", 电平调试开" if LEVEL_DEBUG else ""))
 
         buf = []
+        pre = deque(maxlen=PRE_ROLL_BLOCKS)
         voiced = 0
         silent = 0
         in_speech = False
@@ -168,37 +246,49 @@ class SpeechRecognizer:
                         except Exception as e:
                             print(f"[ASR] 回调失败: {e}")
             buf = []
+            pre.clear()
             in_speech = False
             voiced = 0
             silent = 0
 
+        dbg = 0
         try:
-            with sd.InputStream(samplerate=SAMPLE_RATE, channels=1,
-                                dtype='float32', blocksize=BLOCK_FRAMES) as stream:
-                while self._running:
-                    block, _ = stream.read(BLOCK_FRAMES)
-                    mono = block[:, 0]
-                    rms = float(np.sqrt(np.mean(mono * mono)))
+            while self._running:
+                block, _ = stream.read(BLOCK_FRAMES)
+                mono = block[:, 0]
+                rms = float(np.sqrt(np.mean(mono * mono)))
 
-                    if rms >= SILENCE_RMS:
-                        voiced += 1
-                        silent = 0
-                    else:
-                        silent += 1
-                        voiced = 0
+                if LEVEL_DEBUG:
+                    dbg += 1
+                    if dbg % 5 == 0:   # 每 0.5s 打一次
+                        print(f"[mic] rms={rms:.4f} {'说话' if rms >= SILENCE_RMS else '静音'}")
 
-                    if not in_speech:
-                        if voiced >= SPEECH_START_BLOCKS:
-                            in_speech = True
-                            buf = [mono.copy()]
-                    else:
-                        buf.append(mono.copy())
-                        if silent >= SILENCE_END_BLOCKS:
-                            flush()
-                        elif len(buf) * BLOCK_FRAMES / SAMPLE_RATE >= MAX_SPEECH_SEC:
-                            flush()
+                if rms >= SILENCE_RMS:
+                    voiced += 1
+                    silent = 0
+                else:
+                    silent += 1
+                    voiced = 0
+
+                if not in_speech:
+                    pre.append(mono.copy())
+                    if voiced >= SPEECH_START_BLOCKS:
+                        in_speech = True
+                        buf = list(pre)
+                        pre.clear()
+                else:
+                    buf.append(mono.copy())
+                    if silent >= SILENCE_END_BLOCKS:
+                        flush()
+                    elif len(buf) * BLOCK_FRAMES / SAMPLE_RATE >= MAX_SPEECH_SEC:
+                        flush()
         except Exception as e:
             print(f"[ASR] 采集异常: {e}")
         finally:
+            try:
+                stream.stop()
+                stream.close()
+            except Exception:
+                pass
             self._running = False
             print("[ASR] 已停止")

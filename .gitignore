@@ -33,3 +33,7 @@ secrets.json
 backend/models/
 backend/mqtt_logs/
 *.log
+
+# 本地麦克风调试产物
+backend/mic_*.txt
+backend/mic_scan.py

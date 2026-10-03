@@ -272,7 +272,7 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
 </head>
 <body>
 
-<div class="bar-top" id="bar" style="width:9.09%"></div>
+<div class="bar-top" id="bar"></div>
 
 <div class="viewport">
   <div class="stage" id="stage">
@@ -306,7 +306,7 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
         </div>
 
         <div class="cv-bot">
-          <div class="footline"><b>团队 Manilo 掌音</b>　·　硬件原型　·　回响 · 48H 青年创造营 · 学军中学七十周年　·　2026.10.04</div>
+          <div class="footline" style="cursor: text;"><b>团队 纯水湿巾</b>　·　硬件原型　·　回响 · 48H 青年创造营 　·　2026.10.04</div>
           <div class="metarow">
             <div class="meta">
               <div class="m"><b>2780 万</b>中国听障人士</div>
@@ -423,8 +423,8 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
             <div class="ns">5 路弯曲传感器<br>六轴 IMU<br>数字麦克风</div></div>
           <div class="node"><div class="nn">Edge · F407</div><div class="nt">端 · 实时识别</div>
             <div class="ns">10 ms 一组<br>200×20 时序特征<br>约 180 ms 出结果</div></div>
-          <div class="node"><div class="nn">Edge · MP257</div><div class="nt">边缘 · 算力增强</div>
-            <div class="ns">TCN + NPU 复核难例<br>离线语音识别 200 ms</div></div>
+          <div class="node"><div class="nn">PC · 主控端</div><div class="nt">电脑 · 推理复核</div>
+            <div class="ns">复杂模型复核难例<br>离线语音识别</div></div>
           <div class="node"><div class="nn">Dashboard</div><div class="nt">看板 · 闭环</div>
             <div class="ns">跟读评分三指标<br>学习报告 · 观察 Agent</div></div>
           <div class="node"><div class="nn">Feedback</div><div class="nt">回到手</div>
@@ -441,7 +441,7 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
                 <tr><td class="k">手势采集</td><td>5 路弯曲传感器</td><td>五指弯曲 → 5 路 ADC</td></tr>
                 <tr><td class="k">姿态采集</td><td>JY61 六轴 IMU</td><td>三轴加速度 + 三轴角速度</td></tr>
                 <tr><td class="k">手套端主控</td><td>STM32F407ZGT6</td><td>Flash ≈85 KB / RAM ≈42 KB</td></tr>
-                <tr><td class="k">主控端</td><td>STM32MP257 + NPU</td><td>TCN ≈2.5 MB，推理约 45 ms</td></tr>
+                <tr><td class="k">主控端</td><td>电脑（运行主控程序）</td><td>承接上浮难例的复杂模型推理与离线语音识别</td></tr>
               </tbody>
             </table>
           </div>
@@ -821,7 +821,7 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
     <!-- ============ 13 团队与致谢 ============ -->
     <section class="slide" data-title="我们是谁">
       <div class="inner">
-        <div class="phead"><span class="lbl">团队 · Manilo 掌音</span><span class="pg">13 / 13</span></div>
+        <div class="phead"><span class="lbl">团队 · 纯水湿巾</span><span class="pg">13 / 13</span></div>
         <h1 class="ttl">我们是谁</h1>
         <p class="lead">能装传感器的人、能把模型压进 MCU 的人、能把数据变成家长看得懂的东西的人、懂康复训练怎么练的人——四者缺一，产品都只是零件。</p>
 
@@ -829,10 +829,10 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
           <colgroup><col style="width:24%"><col style="width:16%"><col style="width:60%"></colgroup>
           <thead><tr><th>角色</th><th>姓名</th><th>分工</th></tr></thead>
           <tbody>
-            <tr><td class="k">队长 · 统筹</td><td>【待填写】</td><td>项目定义、路演表达、对外沟通</td></tr>
-            <tr><td class="k">嵌入式与硬件</td><td>【待填写】</td><td>F407 端采集、模型部署、蓝牙通信、电路与结构</td></tr>
-            <tr><td class="k">边缘 AI 与算法</td><td>【待填写】</td><td>200×20 特征与训练、NPU 部署、语音链路</td></tr>
-            <tr><td class="k">平台与数据</td><td>【待填写】</td><td>Web 服务、学习看板、报告与观察 Agent</td></tr>
+            <tr><td class="k">队长 · 统筹</td><td>牟菁婧</td><td>项目定义、路演表达、对外沟通</td></tr>
+            <tr><td class="k">嵌入式与硬件</td><td>牟婧菁</td><td>F407 端采集、模型部署、蓝牙通信、电路与结构</td></tr>
+            <tr><td class="k">边缘 AI 与算法</td><td>邓世昊</td><td>200×20 特征与训练、NPU 部署、语音链路</td></tr>
+            <tr><td class="k">平台与数据</td><td>施逸尔</td><td>Web 服务、学习看板、报告与观察 Agent</td></tr>
           </tbody>
         </table>
 
@@ -1008,5 +1008,6 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
   });
 })();
 </script>
-</body>
-</html>
+
+
+</body></html>

@@ -698,7 +698,7 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
           <tbody>
             <tr><td class="k">硬件整机</td><td>手套端集成 5 路弯曲传感器、六轴 IMU、数字麦克风、串口屏、TTS 与震动马达；主控端与手套端完成数据互传</td></tr>
             <tr><td class="k">端侧算法</td><td>20 维特征提取与轻量手势模型（STM32Cube.AI 部署）；9 维声音事件模型（4 类）；端侧独立完成 90%+ 识别</td></tr>
-            <tr><td class="k">边缘服务</td><td>离线语音识别约 200 ms · TTS 语音合成 · TCN 增强模型跑在 NPU 上（ONNX Runtime）</td></tr>
+            <tr><td class="k">主控端服务</td><td>离线语音识别约 200 ms · TTS 语音合成 · TCN 增强模型在主控电脑上运行（ONNX Runtime）</td></tr>
             <tr><td class="k">双模式识别</td><td>手势直译词库 + 拼音拼写 30 个标签（A—Z 与 CH / SH / ZH / NG），两条链路都已跑通</td></tr>
             <tr><td class="k">学习平台</td><td>学习会话 · 三指标跟读评分 · AI 学习报告 · 练习观察 Agent · 教师 / 家长看板 · 设备阈值在线调节</td></tr>
           </tbody>
@@ -734,7 +734,7 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
             </table>
             <div class="blk" style="margin-top:18px">
               <h3><span class="rn">为什么能做到</span>缺的不是系统，是数据</h3>
-              <p>过程数据、边缘算力、数据闭环都已具备——缺的是<b>更多标注数据与更强的边缘模型</b>。</p>
+              <p>过程数据、主控端算力、数据闭环都已具备——缺的是<b>更多标注数据与更强的模型</b>。</p>
             </div>
           </div>
 
@@ -777,8 +777,8 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
             <div class="ns">频谱流：轻量 Conformer<br>轮廓流：1D 卷积 + BiGRU</div></div>
           <div class="node"><div class="nn">Step 4</div><div class="nt">对齐与评分</div>
             <div class="ns">DTW 对齐目标调型<br>走向 · 半音偏差 · 拐点</div></div>
-          <div class="node"><div class="nn">Step 5</div><div class="nt">端侧部署</div>
-            <div class="ns">ONNX → stai_mpu → NPU<br>int8 量化 · &lt;30 ms / 音节</div></div>
+          <div class="node"><div class="nn">Step 5</div><div class="nt">主控端部署</div>
+            <div class="ns">ONNX 导出 → 主控端推理<br>int8 量化 · &lt;30 ms / 音节</div></div>
         </div>
 
         <div class="two" style="grid-template-columns:1.04fr .96fr;margin-top:22px">
@@ -801,7 +801,7 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
             <div class="items" style="grid-template-columns:1fr;margin-top:14px">
               <div class="it" style="border-top:1px solid var(--fg)">
                 <div class="idx">已具备</div>
-                <div class="it-d" style="margin-top:7px"><b>现成的底座：</b>端侧 FFT 与频域特征链路（现用于环境声音事件）、NPU 上的 ONNX 推理链路、逐会话数据闭环</div>
+                <div class="it-d" style="margin-top:7px"><b>现成的底座：</b>端侧 FFT 与频域特征链路（现用于环境声音事件）、主控端的 ONNX 推理链路、逐会话数据闭环</div>
               </div>
               <div class="it">
                 <div class="idx">正在攻克</div>
@@ -831,7 +831,7 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
           <tbody>
             <tr><td class="k">队长 · 统筹</td><td>牟菁婧</td><td>项目定义、路演表达、对外沟通</td></tr>
             <tr><td class="k">嵌入式与硬件</td><td>牟婧菁</td><td>F407 端采集、模型部署、蓝牙通信、电路与结构</td></tr>
-            <tr><td class="k">边缘 AI 与算法</td><td>邓世昊</td><td>200×20 特征与训练、NPU 部署、语音链路</td></tr>
+            <tr><td class="k">边缘 AI 与算法</td><td>邓世昊</td><td>200×20 特征与训练、主控端模型部署、语音链路</td></tr>
             <tr><td class="k">平台与数据</td><td>施逸尔</td><td>Web 服务、学习看板、报告与观察 Agent</td></tr>
           </tbody>
         </table>
@@ -894,9 +894,9 @@ figure.chart figcaption b{color:var(--coral);font-weight:400}
     ['20 秒','落地三步：先做二十到五十例真实用户的纵向跟踪，用前后测字符错误率说话；再申报残联与教育装备采购目录；然后由机构推荐带动家庭版放量。一旦进入目录，采购就从“逐家推销”变成“预算科目”。'],
     ['20 秒','我们和谁不一样？康复 App 只有“听”和“点选”，我们有物理动作输入和跟读评分的客观数据链；机构设备十几万一台，我们把它压到家庭可负担；助听器和人工耳蜗厂商解决“听得见”，我们解决“说得出”，是配套不是竞争。'],
     ['20 秒','这四张就是现在这一版。左边是硬件成品：手套端集成了五路弯曲传感器、六轴陀螺仪、屏幕、语音播报和震动马达。学生端是手语和拼音两种练习模式，实时显示本次练习时长、识别次数和完成句子数；教师端看板看学习进度、词汇覆盖、跟读吻合率，以及自动生成的学习报告。最右边是微信小程序，把训练从电脑前解放出来——扫码即用，随时随地都能练一轮。目前是局域网内直连，下一步会换成蓝牙，连接会更省事。'],
-    ['20 秒','再说已经做完的：硬件整机集成完成，主控端与手套端数据互传；端侧跑着 20 维特征的手势模型和 9 维声音事件模型，独立完成九成以上识别；离线语音识别约两百毫秒，TTS 与增强模型都部署在边缘端；学习平台这边，会话、三指标评分、AI 报告、观察 Agent 和教师看板全部打通。'],
+    ['20 秒','再说已经做完的：硬件整机集成完成，主控端与手套端数据互传；端侧跑着 20 维特征的手势模型和 9 维声音事件模型，独立完成九成以上识别；离线语音识别约两百毫秒，TTS 与增强模型都跑在主控端；学习平台这边，会话、三指标评分、AI 报告、观察 Agent 和教师看板全部打通。'],
     ['20 秒','我们也很清楚边界：现在只能稳定做到字母和拼音。接下来三件事——粒度做到词、句、对话；评分做到多维；把这套硬件复用到更多场景。'],
-    ['30 秒','声调是我们现在正在攻的难关。中文四声只差一条音高曲线：五五、三五、二一四、五一，字符级的错误率看不见它。路线分五步：对数频率的 CQT 表征、F0 音高轮廓、双流模型、DTW 对齐评分、端侧 NPU 部署。底座是现成的——端侧频域特征链路和 NPU 推理链路都已经在跑；正在攻的是 CQT 表征、双流模型和评分口径；还要验证的，是真实样本上的评分一致性。'],
+    ['30 秒','声调是我们现在正在攻的难关。中文四声只差一条音高曲线：五五、三五、二一四、五一，字符级的错误率看不见它。路线分五步：对数频率的 CQT 表征、F0 音高轮廓、双流模型、DTW 对齐评分、主控端部署。底座是现成的——端侧频域特征链路和主控端推理链路都已经在跑；正在攻的是 CQT 表征、双流模型和评分口径；还要验证的，是真实样本上的评分一致性。'],
     ['10 秒','人工耳蜗让一个人重新听见世界。我们要做的，是让他重新说出自己的名字。谢谢各位老师。']
   ];
 

@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manilo 掌音 · 路演演示</title>
+<style>
+/* =====================================================================
+   Editorial 编辑杂志风 · 大字号精简版
+   配色取自队标：Olive #53442C / Coral #F57E65 / Cream #FDF6E9
+   ===================================================================== */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FDF6E9; --fg:#53442C;
+  --line:rgba(83,68,44,.14); --line2:rgba(83,68,44,.26);
+  --tx:rgba(83,68,44,.84); --mut:rgba(83,68,44,.64); --ter:rgba(83,68,44,.44);
+  --slate:#7C6B52; --mauve:#53442C;
+  --coral:#F57E65; --coral-line:rgba(245,126,101,.60);
+  --slate-line:rgba(124,107,82,.40); --mauve-line:rgba(83,68,44,.45);
+  --serif:"Source Han Serif SC","Noto Serif SC","Songti SC","STSong",SimSun,Georgia,serif;
+  --sans:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC","Noto Sans SC",system-ui,sans-serif;
+  --fs-ttl:45px; --fs-lead:18px; --fs-lbl:11.5px;
+  --fs-th:12px; --fs-td:15.5px; --fs-tdk:18px; --fs-tdv:20px;
+  --fs-itt:19px; --fs-itd:15px; --fs-idx:10.5px;
+  --fs-blkh:19px; --fs-blkp:15.5px;
+  --fs-nv:42px; --fs-nk:13.5px;
+  --fs-cnt:18px; --fs-cns:13.5px;
+  --fs-quote:18px; --fs-cv:17px; --fs-cap:12.5px; --fs-finale:33px;
+}
+html,body{height:100%;background:#2A2116;color:var(--fg);font-family:var(--sans);overflow:hidden}
+body{display:flex;align-items:center;justify-content:center;flex-direction:column}
+.viewport{position:fixed;inset:0 0 46px;display:flex;align-items:center;justify-content:center;background:#2A2116}
+.stage{position:relative;width:1280px;height:720px;flex:0 0 auto;transform-origin:center center;
+  background:var(--bg);overflow:hidden}
+.slide{position:absolute;inset:0;display:none;z-index:2}
+.slide.is-active{display:block}
+.inner{position:absolute;inset:0;padding:40px 64px 56px;display:flex;flex-direction:column;overflow:hidden}
+.slide.is-active .inner{animation:in .45s cubic-bezier(.22,.61,.36,1)}
+@keyframes in{from{opacity:0}to{opacity:1}}
+
+/* ---- 报头 ---- */
+.phead{display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:9px;border-bottom:1px solid var(--slate-line);margin-bottom:22px;flex:0 0 auto}
+.lbl{font-family:var(--sans);font-size:var(--fs-lbl);line-height:1;letter-spacing:.2em;text-transform:uppercase;color:var(--slate)}
+.pg{font-family:var(--serif);font-size:13px;line-height:1;color:var(--coral);letter-spacing:.1em}
+
+/* ---- 标题 / 正文 ---- */
+.ttl{font-family:var(--serif);font-weight:500;font-size:var(--fs-ttl);line-height:1.16;
+  letter-spacing:-.025em;color:var(--fg);flex:0 0 auto}
+.ttl em{font-style:italic;font-weight:400;padding-bottom:2px;color:var(--coral);border-bottom:1px solid var(--coral-line)}
+.lead{font-family:var(--sans);font-size:var(--fs-lead);line-height:1.62;color:var(--mut);
+  margin-top:13px;max-width:1000px;flex:0 0 auto}
+.lead strong{color:var(--coral);font-weight:400;border-bottom:1px solid var(--coral-line)}
+.ital{font-family:var(--serif);font-style:italic;color:var(--mut)}
+
+/* ---- 数字行 ---- */
+.nrow{display:grid;gap:0;flex:0 0 auto}
+.nrow.c4{grid-template-columns:repeat(4,1fr)}
+.nrow.c3{grid-template-columns:repeat(3,1fr)}
+.nitem{padding:14px 22px 12px 0;border-top:1px solid var(--fg)}
+.nitem:not(:last-child){border-right:1px solid var(--line)}
+.nitem:not(:first-child){padding-left:22px}
+.nv{font-family:var(--serif);font-size:var(--fs-nv);line-height:1;letter-spacing:-.03em;color:var(--fg)}
+.nv u{text-decoration:none;font-size:14px;font-family:var(--sans);color:var(--slate);margin-left:5px}
+.nk{font-family:var(--sans);font-size:var(--fs-nk);line-height:1.55;color:var(--slate);margin-top:10px}
+.nrow .nitem.key .nv{color:var(--coral)}
+
+/* ---- 编号条目 ---- */
+.items{display:grid;column-gap:46px;row-gap:0}
+.items.g2{grid-template-columns:1fr 1fr}
+.items.g3{grid-template-columns:repeat(3,1fr)}
+.it{padding:15px 0 16px;border-top:1px solid var(--line)}
+.it .idx{font-family:var(--sans);font-size:var(--fs-idx);letter-spacing:.2em;text-transform:uppercase;color:var(--slate)}
+.it .it-t{font-family:var(--serif);font-size:var(--fs-itt);line-height:1.36;font-weight:500;color:var(--fg);margin-top:8px}
+.it .it-d{font-family:var(--sans);font-size:var(--fs-itd);line-height:1.62;color:var(--slate);margin-top:7px}
+.it .it-d b{color:var(--fg);font-weight:400}
+
+/* ---- 链路 ---- */
+.chain{display:flex;border-top:1px solid var(--fg);border-bottom:1px solid var(--line);flex:0 0 auto}
+.node{flex:1;padding:14px 18px 15px 0}
+.node:not(:last-child){border-right:1px solid var(--line)}
+.node + .node{padding-left:18px}
+.node .nn{font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--slate)}
+.node .nt{font-family:var(--serif);font-size:var(--fs-cnt);font-weight:500;color:var(--fg);margin-top:8px}
+.node .ns{font-family:var(--sans);font-size:var(--fs-cns);line-height:1.58;color:var(--slate);margin-top:8px}
+
+/* ---- 栏 ---- */
+.two{display:grid;gap:0 46px;min-height:0;flex:0 0 auto}
+.blk{border-top:1px solid var(--line);padding-top:14px;flex:0 0 auto}
+.blk h3{font-family:var(--serif);font-size:var(--fs-blkh);font-weight:500;line-height:1.34;color:var(--fg)}
+.blk h3 .rn{font-family:var(--sans);font-size:var(--fs-idx);letter-spacing:.2em;color:var(--slate);
+  display:block;margin-bottom:8px;text-transform:uppercase;font-weight:400}
+.blk p{font-family:var(--sans);font-size:var(--fs-blkp);line-height:1.7;color:var(--slate);margin-top:10px}
+.blk p b{color:var(--fg);font-weight:400;border-bottom:1px solid var(--coral-line)}
+
+/* ---- 表格 ---- */
+table.e{width:100%;border-collapse:collapse;table-layout:fixed}
+table.e th{font-family:var(--sans);font-size:var(--fs-th);letter-spacing:.2em;text-transform:uppercase;
+  color:var(--slate);font-weight:400;text-align:left;padding:0 16px 9px 0;border-bottom:1px solid var(--fg)}
+table.e td{font-family:var(--sans);font-size:var(--fs-td);line-height:1.55;color:var(--slate);
+  padding:11px 16px 11px 0;border-bottom:1px solid var(--line);vertical-align:top}
+table.e td:last-child,table.e th:last-child{padding-right:0}
+table.e td.k{font-family:var(--serif);font-size:var(--fs-tdk);color:var(--fg);line-height:1.35}
+table.e td.v{font-family:var(--serif);font-size:var(--fs-tdv);color:var(--fg);white-space:nowrap;letter-spacing:-.01em}
+table.e td.v u{text-decoration:none;font-family:var(--sans);font-size:13px;color:var(--slate);margin-left:3px}
+table.e td b{color:var(--fg);font-weight:400}
+table.e td.acc{font-family:var(--serif);font-size:var(--fs-tdv);color:var(--coral);white-space:nowrap}
+table.e td.acc u{text-decoration:none;font-family:var(--sans);font-size:13px;color:var(--slate);margin-left:3px}
+.num{font-family:var(--serif);font-size:19px;color:var(--fg);white-space:nowrap}
+
+/* ---- 柱状图 ---- */
+figure.chart{display:flex;flex-direction:column}
+.cplot{height:150px;display:flex;align-items:flex-end;border-bottom:1px solid var(--line2)}
+.ccol{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:0 10px}
+.cv{font-family:var(--serif);font-size:var(--fs-cv);color:var(--fg);margin-bottom:8px;white-space:nowrap}
+.ccol.mid .cv{color:var(--slate)}
+.ccol.tiny .cv{color:var(--coral)}
+.cb{width:60%;max-width:66px;background:var(--fg);opacity:.16}
+.ccol.hi .cb{opacity:.92}
+.ccol.mid .cb{background:var(--slate);opacity:.85}
+.ccol.tiny .cb{background:var(--coral);opacity:1}
+.caxis{display:flex;margin-top:9px}
+.caxis span{flex:1;text-align:center;font-family:var(--sans);font-size:var(--fs-cap);
+  letter-spacing:.1em;color:var(--slate);padding:0 10px;line-height:1.4}
+figure.chart figcaption{margin-top:11px;font-family:var(--sans);font-size:var(--fs-cap);line-height:1.58;color:var(--slate)}
+figure.chart figcaption b{color:var(--coral);font-weight:400}
+
+/* ---- 引文 ---- */
+.quote{border-top:2px solid var(--coral);border-bottom:1px solid var(--line);
+  padding:16px 0;font-family:var(--serif);font-style:italic;font-size:var(--fs-quote);
+  line-height:1.68;color:var(--tx);flex:0 0 auto}
+.quote b{font-style:normal;color:var(--fg);font-weight:500}
+
+/* ---- 演示 ---- */
+.shots{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:1fr 1fr;gap:14px;flex:0 0 auto;height:300px}
+.shot{position:relative;overflow:hidden;border:1px dashed var(--slate-line);background:rgba(124,107,82,.06);
+  display:flex;align-items:flex-end;min-height:0}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.shot.empty img{display:none}
+.shot::after{content:attr(data-ph);position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:0 20px;font-family:var(--sans);font-size:12px;line-height:1.6;color:var(--slate);
+  white-space:pre-line}
+.shot:not(.empty)::after{display:none}
+.shot figcaption{position:relative;z-index:2;width:100%;padding:8px 11px;font-family:var(--sans);
+  font-size:12.5px;color:var(--slate);background:var(--bg);border-top:1px solid var(--line)}
+
+/* ---- 演示画廊（新）---- */
+/* 四图一行：列宽按各自图片的宽高比分配，图框比例 = 图片比例 + contain，
+   于是图片正好填满图框 —— 既不裁切，也不留 letterbox 空白，四张都完整可见 */
+.gal{display:grid;grid-template-columns:1.836fr 1.836fr .75fr .477fr;
+  align-items:start;gap:0 16px;flex:0 0 auto;margin-top:16px}
+.gal figure{position:relative;display:flex;flex-direction:column;
+  border-top:2px solid var(--fg);padding-top:11px}
+.gal .gl-tag{font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--slate);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gal .gl-nm{font-family:var(--serif);font-size:17px;font-weight:500;color:var(--fg);margin-bottom:9px;flex:0 0 auto}
+.gal .frame{position:relative;width:100%;overflow:hidden;flex:0 0 auto;
+  border:1px solid var(--line2);background:rgba(83,68,44,.05)}
+.gal .frame img{width:100%;height:100%;display:block;object-fit:contain}
+/* 图框锁定为图片自身宽高比：完整显示，不裁切、不留白 */
+.gal .frame.shotv{aspect-ratio:1680 / 915}
+.gal .frame.pic{aspect-ratio:1280 / 1706}
+.gal .frame.phone{aspect-ratio:330 / 692}
+.gal figcaption{margin-top:9px;flex:0 0 auto;font-family:var(--sans);font-size:13px;line-height:1.55;color:var(--slate)}
+.gal figcaption b{color:var(--fg);font-weight:400}
+.gal .frame.empty img{display:none}
+.gal .frame.empty::after{content:attr(data-ph);position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;text-align:center;padding:0 18px;font-family:var(--sans);font-size:12px;
+  line-height:1.6;color:var(--slate);white-space:pre-line}
+.gal .frame:not(.empty)::after{display:none}
+/* 让每个图框高度跟随图片自身比例，彻底消除上下留白 */
+.gal .frame{aspect-ratio:var(--ar,1.846)}
+.gal .frame.phone{--ar:.477}
+
+/* ---- 封面 ---- */
+.inner.cover{justify-content:space-between;padding-top:44px;padding-bottom:44px}
+.cv-top{display:flex;justify-content:space-between;align-items:baseline;
+  padding-bottom:12px;border-bottom:2px solid var(--mauve)}
+.brandrow{display:flex;align-items:baseline;gap:16px}
+.masthead{font-family:var(--sans);font-size:12px;letter-spacing:.16em;color:var(--slate)}
+.cn{font-style:normal;color:var(--mauve)}
+.wordmark{font-family:var(--serif);font-size:23px;letter-spacing:.24em;text-transform:uppercase;color:var(--fg)}
+.wordmark .cn{font-style:normal;color:var(--mauve);letter-spacing:.16em}
+.cv-top .k{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--slate)}
+/* 队标 */
+.logo-lock{display:flex;align-items:center;gap:26px}
+.logo-lock img{width:104px;height:auto;display:block;flex:0 0 auto}
+.logo-lock .lk{font-family:var(--sans);font-size:11px;line-height:1.75;letter-spacing:.1em;
+  color:var(--slate);border-left:1px solid var(--slate-line);padding-left:14px}
+.logo-lock .lk b{display:block;font-family:var(--serif);font-weight:500;font-size:13px;
+  letter-spacing:.06em;color:var(--fg);margin-bottom:1px}
+.cv-mid .logrow{display:flex;align-items:flex-end;justify-content:space-between;gap:36px}
+.cv-mid h1{font-family:var(--serif);font-weight:500;font-size:92px;line-height:1;letter-spacing:-.045em;color:var(--fg)}
+.cv-mid h2{font-family:var(--serif);font-weight:400;font-style:italic;font-size:26px;line-height:1.4;
+  color:var(--tx);margin-top:20px}
+.cv-mid .eyebrow{font-family:var(--sans);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--slate);margin-bottom:22px}
+.cv-mid .cvlead{font-family:var(--sans);font-size:15px;line-height:1.7;color:var(--slate);
+  margin-top:20px;max-width:640px}
+.cvnav{display:flex;gap:34px;margin-top:32px;padding-top:14px;border-top:1px solid var(--slate-line)}
+.cvnav span{font-family:var(--sans);font-size:12px;letter-spacing:.06em;color:var(--slate)}
+.cvnav i{font-family:var(--serif);font-style:normal;font-size:13px;color:var(--mauve);margin-right:7px}
+.cv-bot{display:flex;flex-direction:column;gap:14px}
+.footline{padding-bottom:10px;border-bottom:1px solid var(--slate-line);font-family:var(--sans);
+  font-size:12px;letter-spacing:.08em;color:var(--slate)}
+.footline b{font-family:var(--serif);font-size:17px;font-weight:500;letter-spacing:.02em;color:var(--mauve)}
+.cv-bot .metarow{display:flex;align-items:flex-end;gap:34px}
+.cv-bot .meta{display:flex;gap:32px;align-items:flex-end}
+.cv-bot .m{font-family:var(--sans);font-size:11px;letter-spacing:.08em;color:var(--slate);line-height:1.8}
+.cv-bot .m b{display:block;font-family:var(--serif);font-size:24px;font-weight:500;letter-spacing:-.02em;color:var(--fg);margin-bottom:2px}
+.cv-bot .sign{margin-left:auto;font-family:var(--serif);font-style:italic;font-size:13px;color:var(--slate);
+  text-align:right;line-height:1.7;max-width:300px}
+
+/* ---- 名字释义 ---- */
+.etym{font-family:var(--serif);font-size:15px;line-height:1.76;color:var(--slate);font-style:italic}
+.etym b{font-style:normal;color:var(--fg);font-weight:500}
+.etym .mani{font-family:var(--serif);font-style:normal;color:var(--mauve);border-bottom:1px solid var(--mauve-line)}
+.signline{border-top:2px solid var(--coral);padding-top:12px;font-family:var(--serif);font-style:italic;
+  font-size:15px;color:var(--slate);flex:0 0 auto}
+.signline b{font-style:normal;color:var(--mauve);font-weight:500}
+.signline .mani{font-style:normal;color:var(--mauve);border-bottom:1px solid var(--mauve-line)}
+.finale{margin-top:auto;border-top:2px solid var(--coral);padding-top:20px;flex:0 0 auto}
+.finale .big{font-family:var(--serif);font-size:var(--fs-finale);font-weight:500;line-height:1.44;letter-spacing:-.02em;color:var(--fg)}
+.finale .big em{font-style:italic;font-weight:400;color:var(--coral);border-bottom:1px solid var(--coral-line)}
+.finale .sm{font-family:var(--sans);font-size:13.5px;letter-spacing:.1em;color:var(--slate);margin-top:14px}
+
+/* ---- 底部工具条 ---- */
+/* ---- 工具条（沿用队标橄榄深色） ---- */
+.tools{position:fixed;left:0;right:0;bottom:0;height:46px;background:#3A2F1E;color:#D9CDB8;
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:14px;
+  font-family:var(--sans);font-size:12px;letter-spacing:.1em;z-index:99}
+.tools .grp{display:flex;align-items:center;gap:8px}
+.tools button{background:transparent;color:#D9CDB8;border:1px solid rgba(217,205,184,.35);
+  padding:5px 11px;font:inherit;cursor:pointer;transition:background .2s,color .2s}
+.tools button:hover{background:#53442C;color:#FDF6E9}
+.tools button:disabled{opacity:.28;cursor:default}
+.tools .lbl2{color:#9C8F79}
+.page-lab{min-width:110px;text-align:center;font-family:var(--serif);font-size:13px;color:#EDE4D4}
+.timer{font-family:var(--serif);font-size:15px;color:#EDE4D4;min-width:54px;text-align:center}
+.timer.over{color:#F57E65}
+.bar-top{position:fixed;left:0;top:0;height:2px;background:var(--coral);z-index:99;transition:width .35s cubic-bezier(.22,.61,.36,1)}
+
+/* ---- 讲稿面板 ---- */
+.notes{position:fixed;right:18px;bottom:60px;width:min(660px,calc(100vw - 36px));max-height:66vh;overflow:auto;
+  background:var(--bg);padding:24px 26px;z-index:98;border-top:2px solid var(--coral);display:none}
+.notes.on{display:block}
+.notes header{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  padding-bottom:10px;border-bottom:1px solid var(--slate-line);margin-bottom:14px}
+.notes h4{font-family:var(--serif);font-size:19px;font-weight:500;color:var(--fg)}
+.notes header span{font-family:var(--sans);font-size:11px;letter-spacing:.16em;color:var(--coral)}
+.notes p{font-family:var(--sans);font-size:14px;line-height:1.8;color:var(--tx);white-space:pre-wrap}
+.notes .hint2{font-family:var(--sans);font-size:11px;color:var(--slate);margin-top:16px;
+  padding-top:12px;border-top:1px solid var(--line)}
+
+.spacer{flex:1 1 auto;min-height:0}
+@media (prefers-reduced-motion: reduce){
+  .slide.is-active .inner{animation:none!important}
+  .bar-top,.tools button{transition:none!important}
+}
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{overflow:visible;background:var(--bg);height:auto;display:block}
+  .viewport{position:static;display:block}
+  .stage{transform:none!important;width:1280px;height:720px}
+  .slide{display:block!important;position:relative;inset:auto;width:1280px;height:720px;
+    page-break-after:always;break-after:page}
+  .inner{position:relative;transform:none!important;width:100%!important;height:720px}
+  .slide.is-active .inner{animation:none}
+  .bar-top,.tools,.notes{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="bar-top" id="bar"></div>
+
+<div class="viewport">
+  <div class="stage" id="stage">
+
+    <!-- ============ 01 封面 ============ -->
+    <section class="slide is-active" data-cover="1" data-title="让重新听见世界的人，重新开口说话">
+      <div class="inner cover">
+        <div class="cv-top">
+          <div class="logo-lock">
+            <img src="assets/logo-mark.png" alt="Manilo 掌音 队标">
+            <span class="lk"><b>MANILO 掌音</b>教育赛道 · 赛道一<br>Echo | 未来·回响</span>
+          </div>
+          <span class="k">Echo Youth Innovation Hackathon</span>
+        </div>
+
+        <div class="cv-mid">
+          <div class="logrow">
+            <h1>Manilo <em class="cn">掌音</em></h1>
+          </div>
+          <h2>让重新听见世界的人，重新开口说话。</h2>
+          <p class="cvlead">一副会“教说话”的可穿戴手套 —— 把人工耳蜗术后的拼音与开口训练，从机构的一小时，变成家里的每一天。</p>
+          <div class="cvnav">
+            <span><i>01</i>问题</span>
+            <span><i>02</i>背景</span>
+            <span><i>03</i>方案</span>
+            <span><i>04</i>评分</span>
+            <span><i>05</i>商业</span>
+            <span><i>06</i>成果</span>
+            <span><i>07</i>未来</span>
+          </div>
+        </div>
+
+        <div class="cv-bot">
+          <div class="footline" style="cursor: text;"><b>团队 纯水湿巾</b>　·　硬件原型　·　回响 · 48H 青年创造营 　·　2026.10.04</div>
+          <div class="metarow">
+            <div class="meta">
+              <div class="m"><b>2780 万</b>中国听障人士</div>
+              <div class="m"><b>&lt;1 万</b>全国言语治疗师</div>
+              <div class="m"><b>27 万</b>治疗师缺口</div>
+              <div class="m"><b>1.6 万元</b>术后训练补贴 / 学年 / 人</div>
+            </div>
+            <div class="sign">mani 是手，lo 是「你好」。<br>用手掌，说一句你好。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 02 问题 ============ -->
+    <section class="slide" data-title="听得见了，话还得练出来">
+      <div class="inner">
+        <div class="phead"><span class="lbl">问题 · The Problem</span><span class="pg">02 / 13</span></div>
+        <h1 class="ttl">听得见了，<em>话还得练出来</em></h1>
+        <p class="lead">人工耳蜗解决了“听得见”，没解决“说得出”——术后要<strong>每天练 1—2 小时、连续 6—12 个月</strong>。</p>
+
+        <div class="two" style="grid-template-columns:1.06fr .94fr;margin-top:24px">
+          <div class="items g2">
+            <div class="it">
+              <div class="idx">01 &nbsp;训练量</div>
+              <div class="it-t">每天 1—2 小时</div>
+              <div class="it-d">连续 6—12 个月。这个量，只能在家里补。</div>
+            </div>
+            <div class="it">
+              <div class="idx">02 &nbsp;能教的人</div>
+              <div class="it-t">治疗师不足 1 万人</div>
+              <div class="it-d">按国际标准需 28 万，缺口 27 万。</div>
+            </div>
+            <div class="it">
+              <div class="idx">03 &nbsp;设备价格</div>
+              <div class="it-t">机构设备 15—17 万元/台</div>
+              <div class="it-d">基层推不动，家庭更用不起。</div>
+            </div>
+            <div class="it">
+              <div class="idx">04 &nbsp;反馈</div>
+              <div class="it-t">练习是一口“黑箱”</div>
+              <div class="it-d">对不对、进步在哪，家长只能凭感觉。</div>
+            </div>
+          </div>
+
+          <figure class="chart">
+            <div class="cplot">
+              <div class="ccol hi"><span class="cv">6.2</span><span class="cb" style="height:100%"></span></div>
+              <div class="ccol mid"><span class="cv">2.0</span><span class="cb" style="height:32%"></span></div>
+              <div class="ccol tiny"><span class="cv">0.07</span><span class="cb" style="height:1.4%"></span></div>
+            </div>
+            <div class="caxis"><span>美国</span><span>国际标准</span><span>中国大陆</span></div>
+            <figcaption>每万人口拥有的言语治疗师（名）。中国大陆只有 <b>0.07</b>，约为国际标准的 <b>1/30</b>。</figcaption>
+          </figure>
+        </div>
+
+        <table class="e" style="margin-top:24px">
+          <colgroup><col style="width:28%"><col style="width:22%"><col style="width:50%"></colgroup>
+          <thead><tr><th>指标</th><th>数值</th><th>口径</th></tr></thead>
+          <tbody>
+            <tr><td class="k">中国听障人士</td><td class="v">2780<u>万</u></td><td>占残疾人总数约 1/3；0—6 岁听障儿童 13.7 万</td></tr>
+            <tr><td class="k">言语治疗师</td><td class="acc">不足 1<u>万</u></td><td>按国际通行标准每万人 2 名，应配备约 28 万名</td></tr>
+            <tr><td class="k">机构级康复设备</td><td class="v">15—17<u>万元/台</u></td><td>头豹研究院；基层机构推广困难，家庭不可及</td></tr>
+          </tbody>
+        </table>
+        <div class="spacer"></div>
+      </div>
+    </section>
+
+    <!-- ============ 03 背景与市场 ============ -->
+    <section class="slide" data-title="手术便宜了，康复跟不上">
+      <div class="inner">
+        <div class="phead"><span class="lbl">背景与市场 · Why Now</span><span class="pg">03 / 13</span></div>
+        <h1 class="ttl">手术便宜了，<em>康复跟不上</em></h1>
+        <p class="lead">2024 年 12 月集采落地，人工耳蜗单套从 20 余万降到约 5 万——<strong>做手术的人多了，要做康复的人也多了</strong>。</p>
+
+        <div class="two" style="grid-template-columns:1fr 1fr;margin-top:24px">
+          <figure class="chart">
+            <div class="cplot">
+              <div class="ccol mid"><span class="cv">0.5 万例</span><span class="cb" style="height:12%"></span></div>
+              <div class="ccol mid"><span class="cv">1.8 万例</span><span class="cb" style="height:42%"></span></div>
+              <div class="ccol tiny"><span class="cv">4.3 万例</span><span class="cb" style="height:100%"></span></div>
+            </div>
+            <div class="caxis"><span>2017</span><span>2024</span><span>2030 预测</span></div>
+            <figcaption>人工耳蜗植入手术量，年复合增速 <b>20.8%</b>。每个数字背后，都是一个要练满 6—12 个月的孩子。</figcaption>
+          </figure>
+
+          <table class="e">
+            <colgroup><col style="width:40%"><col style="width:32%"><col style="width:28%"></colgroup>
+            <thead><tr><th>支付方</th><th>数值</th><th>要点</th></tr></thead>
+            <tbody>
+              <tr><td class="k">人工耳蜗集采</td><td class="v">20余万→5<u>万</u></td><td>2024-12 落地</td></tr>
+              <tr><td class="k">纳入医保</td><td class="v">28<u>省</u></td><td>报销约 65.3%</td></tr>
+              <tr><td class="k">术后训练补贴</td><td class="acc">1.6<u>万/学年/人</u></td><td>康复救助制度</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="nrow c3" style="margin-top:auto">
+          <div class="nitem key"><div class="nv">300<u>亿元+</u></div><div class="nk">中国语言康复产业规模</div></div>
+          <div class="nitem"><div class="nv">1.1<u>万家</u></div><div class="nk">残联备案的听力语言康复机构</div></div>
+          <div class="nitem"><div class="nv">2396<u>所</u></div><div class="nk">特殊教育学校 · 在校生 91.59 万</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 04 解决方案 ============ -->
+    <section class="slide" data-title="一副陪孩子练说话的手套">
+      <div class="inner">
+        <div class="phead"><span class="lbl">解决方案 · The Solution</span><span class="pg">04 / 13</span></div>
+        <h1 class="ttl">一副陪孩子<em>练说话</em>的手套</h1>
+
+        <div class="chain" style="margin-top:22px">
+          <div class="node"><div class="nn">Hand</div><div class="nt">手 · 采集</div>
+            <div class="ns">5 路弯曲传感器<br>六轴 IMU<br>数字麦克风</div></div>
+          <div class="node"><div class="nn">Edge · F407</div><div class="nt">端 · 实时识别</div>
+            <div class="ns">10 ms 一组<br>200×20 时序特征<br>约 180 ms 出结果</div></div>
+          <div class="node"><div class="nn">PC · 主控端</div><div class="nt">电脑 · 推理复核</div>
+            <div class="ns">复杂模型复核难例<br>离线语音识别</div></div>
+          <div class="node"><div class="nn">Dashboard</div><div class="nt">看板 · 闭环</div>
+            <div class="ns">跟读评分三指标<br>学习报告 · 观察 Agent</div></div>
+          <div class="node"><div class="nn">Feedback</div><div class="nt">回到手</div>
+            <div class="ns">屏幕显示<br>语音播报 · 震动</div></div>
+        </div>
+
+        <div class="two" style="grid-template-columns:1.14fr .86fr;margin-top:22px">
+          <div class="blk">
+            <h3><span class="rn">硬件与部署</span>模块与实测指标</h3>
+            <table class="e" style="margin-top:12px">
+              <colgroup><col style="width:26%"><col style="width:32%"><col style="width:42%"></colgroup>
+              <thead><tr><th>模块</th><th>器件</th><th>指标</th></tr></thead>
+              <tbody>
+                <tr><td class="k">手势采集</td><td>5 路弯曲传感器</td><td>五指弯曲 → 5 路 ADC</td></tr>
+                <tr><td class="k">姿态采集</td><td>JY61 六轴 IMU</td><td>三轴加速度 + 三轴角速度</td></tr>
+                <tr><td class="k">手套端主控</td><td>STM32F407ZGT6</td><td>Flash ≈85 KB / RAM ≈42 KB</td></tr>
+                <tr><td class="k">主控端</td><td>电脑（运行主控程序）</td><td>承接上浮难例的复杂模型推理与离线语音识别</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="blk">
+            <h3><span class="rn">推理算法</span>200 × 20 时序特征</h3>
+            <p>每 10 ms 采一组，攒满 200 组作为 2 秒动作窗口；每组 20 维特征——<b>同时装着“手形”与“运动”</b>，静动态手势共用一个模型，时间差分还能抵消佩戴漂移。</p>
+            <table class="e" style="margin-top:14px">
+              <colgroup><col style="width:62%"><col style="width:38%"></colgroup>
+              <thead><tr><th>分级协同</th><th>取值</th></tr></thead>
+              <tbody>
+                <tr><td>端侧独立完成识别</td><td class="acc">90<u>%+</u></td></tr>
+                <tr><td>难例上浮阈值</td><td class="v">0.10</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="spacer"></div>
+      </div>
+    </section>
+
+    <!-- ============ 05 跟读评分 ============ -->
+    <section class="slide" data-title="练得对不对，用三个数说话">
+      <div class="inner">
+        <div class="phead"><span class="lbl">学习闭环 · The Loop</span><span class="pg">05 / 13</span></div>
+        <h1 class="ttl">练得对不对，<em>用三个数说话</em></h1>
+        <p class="lead">三个指标<strong>分开算</strong>——机器听懂了，不等于孩子说对了。</p>
+
+        <table class="e" style="margin-top:24px">
+          <colgroup><col style="width:24%"><col style="width:26%"><col style="width:50%"></colgroup>
+          <thead><tr><th>指标</th><th>字段</th><th>回答什么问题</th></tr></thead>
+          <tbody>
+            <tr><td class="k">转写成功率</td><td>transcription_ok</td><td>机器听清了没有——只说明产出了文本，不等于说对</td></tr>
+            <tr><td class="k">目标文本吻合率</td><td>matches_expected</td><td>说的是不是目标句（忽略空白与标点后比较）</td></tr>
+            <tr><td class="k">字符错误率 CER</td><td>character_error_rate</td><td>具体错了多少、错在哪里（逐字编辑距离）</td></tr>
+          </tbody>
+        </table>
+
+        <div class="quote" style="margin-top:24px">
+          孩子说“我喜欢<b>苹果</b>”，识别器听成“我喜欢<b>平果</b>”——转写成功了，吻合失败，CER 定位到错在哪个字。<b>只报成功会掩盖问题，只报失败会打击信心。</b>
+        </div>
+
+        <div class="two" style="grid-template-columns:1fr 1fr;margin-top:22px">
+          <div class="blk">
+            <h3><span class="rn">A · 练完之后</span>一份不撒谎的报告</h3>
+            <p>自动汇总时长、识别次数、覆盖标签、跟读成功率与 CER。<b>日志里没有的指标就写没有</b>。</p>
+          </div>
+          <div class="blk">
+            <h3><span class="rn">B · 练习之中</span>会陪练的观察 Agent</h3>
+            <p>每 30 秒扫一次日志，给一句 <b>60 字以内、可执行</b>的建议；模型不可用就退回本地规则。</p>
+          </div>
+        </div>
+        <div class="spacer"></div>
+      </div>
+    </section>
+
+    <!-- ============ 06 商业模式 ============ -->
+    <section class="slide" data-title="机构先买，家庭后跟">
+      <div class="inner">
+        <div class="phead"><span class="lbl">商业模式 · Business Model</span><span class="pg">06 / 13</span></div>
+        <h1 class="ttl">机构先买，<em>家庭后跟</em></h1>
+        <p class="lead">先做机构、再做家庭——康复师认可之后推荐，是康复行业里最短的一条路。</p>
+
+        <div class="two" style="grid-template-columns:.94fr 1.06fr;margin-top:22px">
+          <div>
+            <table class="e">
+              <colgroup><col style="width:28%"><col style="width:34%"><col style="width:38%"></colgroup>
+              <thead><tr><th>客户</th><th>场景</th><th>支付来源</th></tr></thead>
+              <tbody>
+                <tr><td class="k">B 端 · 机构</td><td>康复中心 / 特教学校 / 医院康复科</td><td>机构预算 · 康复训练补贴</td></tr>
+                <tr><td class="k">C 端 · 家庭</td><td>术后康复家庭的居家训练</td><td>家庭自付 · 补贴返还</td></tr>
+                <tr><td class="k">G 端 · 主管</td><td>残联救助 · 教育装备采购</td><td>财政专项</td></tr>
+              </tbody>
+            </table>
+            <div class="blk" style="margin-top:18px">
+              <h3><span class="rn">收入结构</span>四段收入互相喂养</h3>
+              <p>硬件（入口）→ 内容订阅（毛利）→ 机构 SaaS（持续）→ 数据与科研（长期）。<b>样本越多，模型越准。</b></p>
+            </div>
+          </div>
+
+          <div>
+            <figure class="chart">
+              <div class="cplot">
+                <div class="ccol mid"><span class="cv">1.6 万元</span><span class="cb" style="height:100%"></span></div>
+                <div class="ccol mid"><span class="cv">1.5 万元</span><span class="cb" style="height:94%"></span></div>
+                <div class="ccol tiny"><span class="cv">2,980 元</span><span class="cb" style="height:19%"></span></div>
+              </div>
+              <div class="caxis"><span>术后训练补贴<br>每学年 / 人</span><span>多地康复补助<br>每人 / 年</span><span>家庭版手套<br>建议定价</span></div>
+              <figcaption>定价落在补贴额度之内是可解释的支出——同一笔补贴，<b>换来康复师产能的放大</b>。</figcaption>
+            </figure>
+
+            <table class="e" style="margin-top:16px">
+              <colgroup><col style="width:30%"><col style="width:70%"></colgroup>
+              <thead><tr><th>产品线</th><th>建议定价</th></tr></thead>
+              <tbody>
+                <tr><td class="k">家庭版手套</td><td>整机 + 家长端看板　·　<span class="num">¥2,980—3,980</span></td></tr>
+                <tr><td class="k">机构版</td><td>每间教室含教师看板与培训　·　<span class="num">¥19,800 起</span></td></tr>
+                <tr><td class="k">内容订阅</td><td>字母拼音 → 词句对话　·　<span class="num">¥99—199 / 月</span></td></tr>
+                <tr><td class="k">机构 SaaS</td><td>看板 + 报告 + 数据导出　·　<span class="num">¥6,800—12,800 / 年</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="signline" style="margin-top:auto">
+          <b>Manilo 掌音</b> · <span class="mani">mani</span> 是手，<span class="mani">lo</span> 是「你好」——用手掌，说一句你好。
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 07 落地路径 ============ -->
+    <section class="slide" data-title="先拿证据，再进目录，最后放量">
+      <div class="inner">
+        <div class="phead"><span class="lbl">落地路径 · Go To Market</span><span class="pg">07 / 13</span></div>
+        <h1 class="ttl">先拿证据，再进目录，<em>最后放量</em></h1>
+        <p class="lead">先拿到效果证据，再进入采购目录，最后靠机构推荐带动家庭放量。</p>
+
+        <table class="e" style="margin-top:26px">
+          <colgroup><col style="width:18%"><col style="width:42%"><col style="width:40%"></colgroup>
+          <thead><tr><th>阶段</th><th>做什么</th><th>验证指标</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="k">0—6 个月<br><span style="font-family:var(--sans);font-size:12px;color:var(--mauve)">① 验证</span></td>
+              <td>与 1—2 家康复中心 / 特教学校共建训练流程，做 20—50 例真实用户的纵向跟踪</td>
+              <td>前测 / 后测 <b>字符错误率（CER）</b>有可观测变化</td>
+            </tr>
+            <tr>
+              <td class="k">6—18 个月<br><span style="font-family:var(--sans);font-size:12px;color:var(--mauve)">② 进目录</span></td>
+              <td>以机构版 + 教师看板进入康复机构与特教学校，申报残联康复辅具目录与教育装备采购目录</td>
+              <td>完成申报并进入评审；试点机构每周活跃训练会话数</td>
+            </tr>
+            <tr>
+              <td class="k">18 个月起<br><span style="font-family:var(--sans);font-size:12px;color:var(--mauve)">③ 放量</span></td>
+              <td>家庭版随机构推荐进入家庭；内容扩展到词、句、对话</td>
+              <td>家庭版季度出货量；跟读样本累计量</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="quote" style="margin-top:24px">
+          <b>杠杆点：</b>一旦进入目录，采购决策就从“逐家推销”变成“预算科目”。
+        </div>
+
+        <div class="nrow c3" style="margin-top:auto">
+          <div class="nitem key"><div class="nv">2396<u>所</u></div><div class="nk">特殊教育学校——离课堂最近的入口</div></div>
+          <div class="nitem"><div class="nv">1.1<u>万家</u></div><div class="nk">残联备案的听力语言康复机构</div></div>
+          <div class="nitem"><div class="nv">8.13<u>万</u></div><div class="nk">特殊教育专任教师——第一批使用者</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 08 壁垒与竞争 ============ -->
+    <section class="slide" data-title="不做重复的，做没人做的">
+      <div class="inner">
+        <div class="phead"><span class="lbl">壁垒与竞争 · Moat</span><span class="pg">08 / 13</span></div>
+        <h1 class="ttl">不做重复的，<em>做没人做的</em></h1>
+
+        <table class="e" style="margin-top:26px">
+          <colgroup><col style="width:18%"><col style="width:34%"><col style="width:48%"></colgroup>
+          <thead><tr><th>竞争类型</th><th>他们</th><th>我们</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="k">康复 App</td>
+              <td>只有“听声音”和“点图片”，动作本身没有测量</td>
+              <td><b>物理动作输入 + 跟读评分的客观数据链</b>：识别 → 目标句 → 三指标 → 报告</td>
+            </tr>
+            <tr>
+              <td class="k">机构级设备</td>
+              <td>均价 15—17 万元/台，进不了家庭</td>
+              <td><b>价格压到家庭可负担，同时保留机构级看板</b></td>
+            </tr>
+            <tr>
+              <td class="k">助听器 / 耳蜗厂商</td>
+              <td>解决“听得见”——那是他们的战场</td>
+              <td><b>我们解决“说得出”，是配套而不是竞争</b></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="nrow c3" style="margin-top:24px">
+          <div class="nitem"><div class="nv">01</div><div class="nk">硬件工程：端侧独立完成 90%+ 识别</div></div>
+          <div class="nitem"><div class="nv">02</div><div class="nk">评分指标与数据闭环：可审计、可交给康复师</div></div>
+          <div class="nitem"><div class="nv">03</div><div class="nk">路径设计：机构 → 目录 → 家庭</div></div>
+        </div>
+
+        <div class="quote" style="margin-top:22px">
+          <b>为什么守得住：</b>对手要复制，得同时补上三条腿——传感器结构、端侧模型、真实跟读样本。前两条能买，<b>第三条只能靠时间攒</b>，而它正是评分的分母。
+        </div>
+        <div class="spacer"></div>
+      </div>
+    </section>
+
+    <!-- ============ 09 现场演示 ============ -->
+    <section class="slide" data-title="这就是它跑起来的样子">
+      <div class="inner">
+        <div class="phead"><span class="lbl">现场演示 · Live Demo</span><span class="pg">09 / 13</span></div>
+        <h1 class="ttl">这就是它<em>跑起来的样子</em></h1>
+        <p class="lead">硬件、学生端、教师端、小程序——四个都在跑，都是现在这一版。</p>
+
+        <div class="gal">
+          <figure class="f-stu">
+            <div class="gl-tag">Student App</div>
+            <div class="gl-nm">学生端 · 练习</div>
+            <div class="frame shotv" data-ph="待补：学生端练习界面&#10;assets/demo-1-full.png">
+              <img src="assets/demo-1-full.png" alt="" onerror="this.parentNode.classList.add('empty')">
+            </div>
+            <figcaption>手语 / 拼音两种模式，实时显示<b>练习时长、识别次数、完成句子数</b>与逐条反馈。</figcaption>
+          </figure>
+
+          <figure class="f-tea">
+            <div class="gl-tag">Teacher Dashboard</div>
+            <div class="gl-nm">教师端 · 看板</div>
+            <div class="frame shotv" data-ph="待补：教师端看板&#10;assets/demo-2-full.png">
+              <img src="assets/demo-2-full.png" alt="" onerror="this.parentNode.classList.add('empty')">
+            </div>
+            <figcaption>学习进度、词汇覆盖、跟读吻合率与 CER，以及<b>自动生成的 AI 学习报告</b>。</figcaption>
+          </figure>
+
+          <figure class="f-hard">
+            <div class="gl-tag">Hardware</div>
+            <div class="gl-nm">硬件成品</div>
+            <div class="frame pic" data-ph="待补：硬件成品照&#10;assets/demo-3.jpg">
+              <img src="assets/demo-3.jpg" alt="" onerror="this.parentNode.classList.add('empty')">
+            </div>
+            <figcaption>手套端 <b>5 路弯曲传感器 + 六轴 IMU</b>；主控端串口屏实时显示识别结果，两端数据互传。</figcaption>
+          </figure>
+
+          <figure class="f-mini">
+            <div class="gl-tag">WeChat Mini Program</div>
+            <div class="gl-nm">微信小程序</div>
+            <div class="frame phone" data-ph="待补：小程序界面&#10;assets/demo-mini.png">
+              <img src="assets/demo-mini.png" alt="" onerror="this.parentNode.classList.add('empty')">
+            </div>
+            <figcaption>扫码即练，训练不被绑在电脑前。<b>当前局域网直连，下一步蓝牙</b>。</figcaption>
+          </figure>
+        </div>
+
+        <div class="quote" style="margin-top:auto">
+          <b>一条数据流串起四端：</b>手套采集 → 端侧识别 → 学习平台评分 → 教师端汇总；小程序再把练习带出教室。
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 10 已完成 ============ -->
+    <section class="slide" data-title="这些都已经做完">
+      <div class="inner">
+        <div class="phead"><span class="lbl">当前成果 · Shipped</span><span class="pg">10 / 13</span></div>
+        <h1 class="ttl">这些，<em>都已经做完</em></h1>
+        <p class="lead">上一页是它现在的样子，这一页是它现在的水准——都是既有实测口径，学习效果类数据待试点采集。</p>
+
+        <table class="e" style="margin-top:24px">
+          <colgroup><col style="width:22%"><col style="width:78%"></colgroup>
+          <thead><tr><th>部分</th><th>已完成</th></tr></thead>
+          <tbody>
+            <tr><td class="k">硬件整机</td><td>手套端集成 5 路弯曲传感器、六轴 IMU、数字麦克风、串口屏、TTS 与震动马达；主控端与手套端完成数据互传</td></tr>
+            <tr><td class="k">端侧算法</td><td>20 维特征提取与轻量手势模型（STM32Cube.AI 部署）；9 维声音事件模型（4 类）；端侧独立完成 90%+ 识别</td></tr>
+            <tr><td class="k">主控端服务</td><td>离线语音识别约 200 ms · TTS 语音合成 · TCN 增强模型在主控电脑上运行（ONNX Runtime）</td></tr>
+            <tr><td class="k">双模式识别</td><td>手势直译词库 + 拼音拼写 30 个标签（A—Z 与 CH / SH / ZH / NG），两条链路都已跑通</td></tr>
+            <tr><td class="k">学习平台</td><td>学习会话 · 三指标跟读评分 · AI 学习报告 · 练习观察 Agent · 教师 / 家长看板 · 设备阈值在线调节</td></tr>
+          </tbody>
+        </table>
+
+        <div class="nrow c4" style="margin-top:34px">
+          <div class="nitem"><div class="nv">85—87.3<u>%</u></div><div class="nk">端侧手势识别准确率</div></div>
+          <div class="nitem key"><div class="nv">≈180<u>ms</u></div><div class="nk">端侧单次推理 · 10 ms/组、2 秒窗口</div></div>
+          <div class="nitem"><div class="nv">&lt;1<u>%</u></div><div class="nk">蓝牙丢帧率；MQTT 到达率 &gt;99%</div></div>
+          <div class="nitem"><div class="nv">4<u>类</u></div><div class="nk">环境声音事件，准确率约 90%+</div></div>
+        </div>
+        <div class="spacer"></div>
+      </div>
+    </section>
+
+    <!-- ============ 11 未来展望 ============ -->
+    <section class="slide" data-title="接下来，往词和句走">
+      <div class="inner">
+        <div class="phead"><span class="lbl">未来展望 · What's Next</span><span class="pg">11 / 13</span></div>
+        <h1 class="ttl">接下来，<em>往词和句走</em></h1>
+        <p class="lead">现在稳定做到的是<strong>字母与拼音</strong>这一层。再往上，是词、是句。</p>
+
+        <div class="two" style="grid-template-columns:1.08fr .92fr;margin-top:24px">
+          <div>
+            <table class="e">
+              <colgroup><col style="width:34%"><col style="width:66%"></colgroup>
+              <thead><tr><th>评分维度</th><th>未来</th></tr></thead>
+              <tbody>
+                <tr><td class="k">声母 / 韵母</td><td>逐音素定位“哪一个音发错了”</td></tr>
+                <tr><td class="k">声调走向</td><td>声调曲线与目标对比　→　<b>下一页展开</b></td></tr>
+                <tr><td class="k">语速 · 停顿</td><td>偏差、稳定性与是否逐字崩解</td></tr>
+              </tbody>
+            </table>
+            <div class="blk" style="margin-top:18px">
+              <h3><span class="rn">为什么能做到</span>缺的不是系统，是数据</h3>
+              <p>过程数据、主控端算力、数据闭环都已具备——缺的是<b>更多标注数据与更强的模型</b>。</p>
+            </div>
+          </div>
+
+          <div class="items" style="grid-template-columns:1fr">
+            <div class="it">
+              <div class="idx">方向 01 · 粒度</div>
+              <div class="it-t">词 → 句 → 对话</div>
+              <div class="it-d">从分级词表到短语、到多轮场景训练。<b>扩展不需要改硬件协议。</b></div>
+            </div>
+            <div class="it">
+              <div class="idx">方向 02 · 硬件复用</div>
+              <div class="it-t">一个产品家族</div>
+              <div class="it-d">聋哑人与不会手语者的双向交流工具、构音障碍训练、老年失语居家康复、嵌入式 AI 教具。</div>
+            </div>
+            <div class="it">
+              <div class="idx">方向 03 · 体系</div>
+              <div class="it-t">让资源下沉</div>
+              <div class="it-d">评估 → 家庭训练 → 数据回流 → 效果复核，<b>县乡家庭也能获得有康复师把关的日常训练</b>。</div>
+            </div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+      </div>
+    </section>
+
+
+    <!-- ============ 12 声调走向 ============ -->
+    <section class="slide" data-title="中文四声，卡在一条音高曲线上">
+      <div class="inner">
+        <div class="phead"><span class="lbl">正在攻克 · Tone Contour</span><span class="pg">12 / 13</span></div>
+        <h1 class="ttl">中文四声，<em>卡在一条音高曲线上</em></h1>
+        <p class="lead">字符级的 CER 看不见声调。耳蜗削弱了低频的<b>时间精细结构</b>，而中文声调恰恰靠它携带——这是术后最难、也最容易被忽略的一环，也是<strong>我们现在正在攻的难关</strong>。</p>
+
+        <div class="chain" style="margin-top:22px">
+          <div class="node"><div class="nn">Step 1</div><div class="nt">频谱表征</div>
+            <div class="ns">25 ms 窗 / 10 ms 帧移<br>log-Mel + CQT 对数频率</div></div>
+          <div class="node"><div class="nn">Step 2</div><div class="nt">音高轮廓</div>
+            <div class="ns">pYIN / CREPE 提 F0<br>半音刻度做说话人归一化</div></div>
+          <div class="node"><div class="nn">Step 3</div><div class="nt">双流模型</div>
+            <div class="ns">频谱流：轻量 Conformer<br>轮廓流：1D 卷积 + BiGRU</div></div>
+          <div class="node"><div class="nn">Step 4</div><div class="nt">对齐与评分</div>
+            <div class="ns">DTW 对齐目标调型<br>走向 · 半音偏差 · 拐点</div></div>
+          <div class="node"><div class="nn">Step 5</div><div class="nt">主控端部署</div>
+            <div class="ns">ONNX 导出 → 主控端推理<br>int8 量化 · &lt;30 ms / 音节</div></div>
+        </div>
+
+        <div class="two" style="grid-template-columns:1.04fr .96fr;margin-top:22px">
+          <div>
+            <table class="e">
+              <colgroup><col style="width:16%"><col style="width:15%"><col style="width:17%"><col style="width:52%"></colgroup>
+              <thead><tr><th>声调</th><th>调值</th><th>曲线</th><th>最常见的错</th></tr></thead>
+              <tbody>
+                <tr><td class="k">一声</td><td class="v">55</td><td>高平</td><td>起调偏低，听感接近轻声</td></tr>
+                <tr><td class="k">二声</td><td class="acc">35</td><td>中升</td><td>升幅不够，或起点起得太高</td></tr>
+                <tr><td class="k">三声</td><td class="v">214</td><td>降升</td><td>拐点太晚，后半段没升起来</td></tr>
+                <tr><td class="k">四声</td><td class="v">51</td><td>全降</td><td>收得太早，降幅不足</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div class="blk" style="border-top:0;padding-top:0">
+              <h3><span class="rn">攻坚进度</span>我们攻到哪儿了</h3>
+            </div>
+            <div class="items" style="grid-template-columns:1fr;margin-top:14px">
+              <div class="it" style="border-top:1px solid var(--fg)">
+                <div class="idx">已具备</div>
+                <div class="it-d" style="margin-top:7px"><b>现成的底座：</b>端侧 FFT 与频域特征链路（现用于环境声音事件）、主控端的 ONNX 推理链路、逐会话数据闭环</div>
+              </div>
+              <div class="it">
+                <div class="idx">正在攻克</div>
+                <div class="it-d" style="margin-top:7px"><b>这条支路的核心三段：</b>CQT 表征与 F0 轮廓提取、双流模型的训练与融合、DTW 评分口径的确定</div>
+              </div>
+              <div class="it">
+                <div class="idx">待验证</div>
+                <div class="it-d" style="margin-top:7px"><b>评分是否可信：</b>真实用户样本上的评分一致性，以及与康复师人工评价的对照</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+      </div>
+    </section>
+
+    <!-- ============ 13 团队与致谢 ============ -->
+    <section class="slide" data-title="我们是谁">
+      <div class="inner">
+        <div class="phead"><span class="lbl">团队 · 纯水湿巾</span><span class="pg">13 / 13</span></div>
+        <h1 class="ttl">我们是谁</h1>
+        <p class="lead">能装传感器的人、能把模型压进 MCU 的人、能把数据变成家长看得懂的东西的人、懂康复训练怎么练的人——四者缺一，产品都只是零件。</p>
+
+        <table class="e" style="margin-top:20px">
+          <colgroup><col style="width:24%"><col style="width:16%"><col style="width:60%"></colgroup>
+          <thead><tr><th>角色</th><th>姓名</th><th>分工</th></tr></thead>
+          <tbody>
+            <tr><td class="k">队长 · 统筹</td><td>牟菁婧</td><td>项目定义、路演表达、对外沟通</td></tr>
+            <tr><td class="k">嵌入式与硬件</td><td>牟婧菁</td><td>F407 端采集、模型部署、蓝牙通信、电路与结构</td></tr>
+            <tr><td class="k">边缘 AI 与算法</td><td>邓世昊</td><td>200×20 特征与训练、主控端模型部署、语音链路</td></tr>
+            <tr><td class="k">平台与数据</td><td>施逸尔</td><td>Web 服务、学习看板、报告与观察 Agent</td></tr>
+          </tbody>
+        </table>
+
+        <div class="blk" style="margin-top:18px">
+          <h3><span class="rn">名字的来处</span>Manilo 掌音</h3>
+          <p class="etym">
+            <span class="mani">mani</span> 是「手」，<span class="mani">lo</span> 是「你好」——<b>用手掌发出的声音，向世界说一句你好。</b><br>
+            我们相信康复的终点不是一组正确的音节，而是有一天他愿意主动开口，先对身边的人问一声好。
+          </p>
+        </div>
+
+        <div class="finale">
+          <div class="big">人工耳蜗让一个人重新听见世界，<br>我们要做的，是让他<em>重新说出自己的名字</em>。</div>
+          <div class="sm">让今天被解决的问题，成为下一个人的起点。　—　Manilo 掌音</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<nav class="tools" aria-label="路演控制">
+  <div class="grp">
+    <button id="prev">← 上一页</button>
+    <span class="page-lab" id="plab">01 / 13</span>
+    <button id="next">下一页 →</button>
+  </div>
+  <div class="grp">
+    <span class="lbl2">← → 翻页 · F 全屏 · N 讲稿 · T 计时 · P 导 PDF</span>
+    <span class="timer" id="timer">00:00</span>
+    <button id="tbtn">开始计时</button>
+  </div>
+</nav>
+
+<aside class="notes" id="notes" aria-label="逐页讲稿">
+  <header><h4 id="ntitle">讲稿</h4><span id="ntime">—</span></header>
+  <p id="nbody"></p>
+  <div class="hint2">投屏时默认隐藏，按 N 呼出／收起；打开时观众也能看到，请按彩排需要使用。</div>
+</aside>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var plab = document.getElementById('plab');
+  var notes = document.getElementById('notes');
+  var timer = document.getElementById('timer');
+  var tbtn = document.getElementById('tbtn');
+  var i = 0, n = slides.length;
+
+  var   scripts = [
+    ['10 秒','我们做的是一副会“教说话”的手套。它服务的人很具体：因为人工耳蜗重新获得听力、但还要重新学拼音与开口的人。'],
+    ['30 秒','人工耳蜗解决“听得见”，没解决“说得出”。术后要每天练一到两小时、连续六到十二个月。可是全国言语治疗师不到一万人，按国际标准需要约二十八万，缺口二十七万。机构级设备十几万一台，进不了家庭；在家里，家长只能凭感觉陪练。'],
+    ['25 秒','但门正在变宽。2024 年 12 月集采落地，人工耳蜗单套从二十余万降到约五万，二十八省纳入医保，手术量从五千例涨到一万八千例。更关键的是支付方已经为“训练”留好了钱：术后听觉言语功能训练补贴一万六一个学年。我们不需要创造新预算。'],
+    ['45 秒','方案是一副手套加一套学习后台。每十毫秒采一组，攒满两百组、每组二十个特征，本地实时推理约一百八十毫秒。这二十维里同时装着“手形”和“运动”，所以静动态手势共用一个模型。算力做分级：手套端跑轻量模型，不确定时才交给主控端复核——正常情况下端侧独立完成九成以上识别。'],
+    ['30 秒','跟读之后怎么判断说得好不好？不靠感觉，靠三个数：转写成功率、目标文本吻合率、字符错误率。分开统计，因为“机器听懂了”和“孩子说对了”是两回事。'],
+    ['30 秒','先与康复和特教机构试点，由专业人员指导，家庭练习作为延伸。收入是学习管理订阅加设备租赁。定价能讲得通：多地康复训练补贴是一万五到一万六一个人一年，我们的设备在补贴额度之内——同一笔补贴，换来康复师产能的放大。'],
+    ['20 秒','落地三步：先做二十到五十例真实用户的纵向跟踪，用前后测字符错误率说话；再申报残联与教育装备采购目录；然后由机构推荐带动家庭版放量。一旦进入目录，采购就从“逐家推销”变成“预算科目”。'],
+    ['20 秒','我们和谁不一样？康复 App 只有“听”和“点选”，我们有物理动作输入和跟读评分的客观数据链；机构设备十几万一台，我们把它压到家庭可负担；助听器和人工耳蜗厂商解决“听得见”，我们解决“说得出”，是配套不是竞争。'],
+    ['20 秒','这四张就是现在这一版。左边是硬件成品：手套端集成了五路弯曲传感器、六轴陀螺仪、屏幕、语音播报和震动马达。学生端是手语和拼音两种练习模式，实时显示本次练习时长、识别次数和完成句子数；教师端看板看学习进度、词汇覆盖、跟读吻合率，以及自动生成的学习报告。最右边是微信小程序，把训练从电脑前解放出来——扫码即用，随时随地都能练一轮。目前是局域网内直连，下一步会换成蓝牙，连接会更省事。'],
+    ['20 秒','再说已经做完的：硬件整机集成完成，主控端与手套端数据互传；端侧跑着 20 维特征的手势模型和 9 维声音事件模型，独立完成九成以上识别；离线语音识别约两百毫秒，TTS 与增强模型都跑在主控端；学习平台这边，会话、三指标评分、AI 报告、观察 Agent 和教师看板全部打通。'],
+    ['20 秒','我们也很清楚边界：现在只能稳定做到字母和拼音。接下来三件事——粒度做到词、句、对话；评分做到多维；把这套硬件复用到更多场景。'],
+    ['30 秒','声调是我们现在正在攻的难关。中文四声只差一条音高曲线：五五、三五、二一四、五一，字符级的错误率看不见它。路线分五步：对数频率的 CQT 表征、F0 音高轮廓、双流模型、DTW 对齐评分、主控端部署。底座是现成的——端侧频域特征链路和主控端推理链路都已经在跑；正在攻的是 CQT 表征、双流模型和评分口径；还要验证的，是真实样本上的评分一致性。'],
+    ['10 秒','人工耳蜗让一个人重新听见世界。我们要做的，是让他重新说出自己的名字。谢谢各位老师。']
+  ];
+
+  function autofit(s){
+    var inner = s.querySelector('.inner');
+    inner.style.transform=''; inner.style.width=''; inner.style.height='';
+    var avail = inner.clientHeight, need = inner.scrollHeight;
+    if(need > avail + 2 && need > 0){
+      var k = Math.max(0.74, avail/need);
+      inner.style.transformOrigin='top left';
+      inner.style.transform='scale('+k.toFixed(4)+')';
+      inner.style.width=(100/k).toFixed(3)+'%';
+      inner.style.height=(100/k).toFixed(3)+'%';
+    }
+  }
+  function autofitAll(){ slides.forEach(autofit); }
+  function pad(x){ return (x<10?'0':'')+x; }
+
+  function go(k){
+    if(k<0 || k>=n) return;
+    slides[i].classList.remove('is-active');
+    i = k;
+    slides[i].classList.add('is-active');
+    autofit(slides[i]);
+    plab.textContent = pad(i+1)+' / '+pad(n);
+    bar.style.width = ((i+1)/n*100)+'%';
+    document.getElementById('prev').disabled = i===0;
+    document.getElementById('next').disabled = i===n-1;
+    var sc = scripts[i] || ['—',''];
+    document.getElementById('ntitle').textContent = slides[i].getAttribute('data-title')||'';
+    document.getElementById('ntime').textContent = '计划 '+sc[0];
+    document.getElementById('nbody').textContent = sc[1];
+    try{ history.replaceState(null,'','#'+(i+1)); }catch(e){}
+  }
+  function next(){ go(i+1); } function prev(){ go(i-1); }
+
+  var base=0, t0=null;
+  function secs(){ return Math.floor((base + (t0===null?0:performance.now()-t0))/1000); }
+  function tick(){
+    var s = secs(), m = Math.floor(s/60);
+    timer.textContent = pad(m)+':'+pad(s%60);
+    timer.classList.toggle('over', s>=300);
+  }
+  function toggleTimer(){
+    if(t0===null){ t0=performance.now(); tbtn.textContent='暂停计时'; }
+    else { base+=performance.now()-t0; t0=null; tbtn.textContent='继续计时'; }
+    tick();
+  }
+  tbtn.addEventListener('click', toggleTimer);
+  setInterval(tick, 250);
+  document.getElementById('prev').addEventListener('click', prev);
+  document.getElementById('next').addEventListener('click', next);
+
+  document.addEventListener('keydown', function(e){
+    if(e.ctrlKey||e.metaKey||e.altKey) return;
+    var k = e.key;
+    if(k==='ArrowRight'||k==='ArrowDown'||k==='PageDown'||k===' '){ e.preventDefault(); next(); }
+    else if(k==='ArrowLeft'||k==='ArrowUp'||k==='PageUp'){ e.preventDefault(); prev(); }
+    else if(k==='Home'){ e.preventDefault(); go(0); }
+    else if(k==='End'){ e.preventDefault(); go(n-1); }
+    else if(k==='n'||k==='N'){ e.preventDefault(); notes.classList.toggle('on'); }
+    else if(k==='t'||k==='T'){ e.preventDefault(); toggleTimer(); }
+    else if(k==='p'||k==='P'){ window.print(); }
+    else if(k==='f'||k==='F'){
+      if(document.fullscreenElement) document.exitFullscreen();
+      else if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    if(e.target.closest('.tools')||e.target.closest('.notes')) return;
+    var x = e.clientX/window.innerWidth;
+    if(x>0.72) next(); else if(x<0.28) prev();
+  });
+
+  var lock=0;
+  window.addEventListener('wheel', function(e){
+    var t=Date.now();
+    if(t-lock<550 || Math.abs(e.deltaY)<18) return;
+    lock=t; if(e.deltaY>0) next(); else prev();
+  }, {passive:true});
+
+  var x0=null;
+  window.addEventListener('touchstart', function(e){ x0=e.touches[0].clientX; }, {passive:true});
+  window.addEventListener('touchend', function(e){
+    if(x0===null) return;
+    var dx=e.changedTouches[0].clientX-x0;
+    if(Math.abs(dx)>48){ if(dx<0) next(); else prev(); }
+    x0=null;
+  }, {passive:true});
+
+  function layout(){
+    var vp = document.querySelector('.viewport');
+    var s = Math.min(vp.clientWidth/1280, vp.clientHeight/720);
+    stage.style.transform = 'scale('+s.toFixed(4)+')';
+    autofitAll();
+  }
+  window.addEventListener('resize', layout);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+  window.addEventListener('load', layout);
+  layout();
+
+  var start = 0, m = /^#(\d+)$/.exec(location.hash||'');
+  if(m) start = Math.min(n-1, Math.max(0, parseInt(m[1],10)-1));
+  go(start);
+  window.addEventListener('hashchange', function(){
+    var mm = /^#(\d+)$/.exec(location.hash||'');
+    if(mm){ var t=Math.min(n-1,Math.max(0,parseInt(mm[1],10)-1)); if(t!==i) go(t); }
+  });
+})();
+</script>
+
+
+</body></html>

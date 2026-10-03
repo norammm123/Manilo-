@@ -895,7 +895,29 @@ def api_learning_finish():
     if not session:
         return jsonify({"error": "learning session not found"}), 404
     if session.get("event") == "finish":
-        return jsonify({"error": "learning session already finished"}), 409
+        # 幂等：这条会话已经结束过，直接复用已保存的结果返回 200。
+        # 以前这里返回 409，前端收到报错后不会重置会话状态，导致按钮永久卡在
+        # 「结束学习并生成报告」上再也点不动（生成报告较慢时刷新/重复点击就会触发）。
+        ended_at = float(session.get("ended_at") or time.time())
+        saved = next((r for r in reversed(_read_jsonl(REPORTS_FILE))
+                      if r.get("session_id") == session_id), None)
+        fallback = session.get("report") or {}
+        report_metrics = dict(saved.get("metrics") if saved and saved.get("metrics")
+                              else {k: v for k, v in fallback.items() if k != "events"})
+        return jsonify({
+            "session_id": session_id,
+            "started_at": float(session.get("started_at", 0)),
+            "ended_at": ended_at,
+            "mode": session.get("mode", "gesture"),
+            "report": report_metrics,
+            "agent_used": bool(saved.get("agent_used")) if saved else False,
+            "agent_report": (saved.get("summary", "") if saved and saved.get("agent_used") else ""),
+            "agent_error": (saved.get("agent_error") or None) if saved else None,
+            "summary": saved.get("summary", "") if saved else "学习日志已保存。",
+            "sessions_today": sum(1 for s in _learning_sessions()
+                                   if float(s.get("started_at", 0)) >= _day_start()),
+            "already_finished": True,
+        })
     ended_at = time.time()
     metrics = _session_metrics(session, ended_at)
     finish_event = {

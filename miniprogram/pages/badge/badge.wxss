@@ -1,0 +1,37 @@
+/* pages/badge/badge.wxss */
+.page { min-height: 100vh; background: #F8F9FA; }
+
+.nav-bar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 120rpx 40rpx 40rpx;
+}
+.nav-title { font-size: 40rpx; font-weight: 700; color: #fff; display: block; }
+.nav-sub { font-size: 26rpx; color: rgba(255,255,255,0.85); margin-top: 12rpx; display: block; }
+
+.content { padding: 32rpx; }
+
+.badge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24rpx; }
+
+.badge-item {
+  background: #fff; border-radius: 24rpx; padding: 36rpx 24rpx;
+  text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.badge-item.locked { opacity: 0.55; }
+
+.badge-icon {
+  width: 120rpx; height: 120rpx; border-radius: 50%;
+  margin: 0 auto 20rpx; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%);
+  font-size: 60rpx; box-shadow: 0 8rpx 24rpx rgba(245,158,11,0.3);
+}
+.badge-icon.gray { background: #E5E7EB; box-shadow: none; }
+
+.badge-name { font-size: 30rpx; font-weight: 600; color: #111827; display: block; }
+.badge-desc { font-size: 22rpx; color: #6B7280; margin-top: 8rpx; display: block; line-height: 1.5; }
+.badge-progress { font-size: 22rpx; color: #F59E0B; margin-top: 12rpx; display: block; }
+.badge-earned { font-size: 22rpx; color: #059669; margin-top: 12rpx; display: block; font-weight: 600; }
+
+.tip {
+  margin-top: 32rpx; text-align: center; font-size: 24rpx; color: #9CA3AF;
+  background: #fff; border-radius: 16rpx; padding: 24rpx;
+}

@@ -1,0 +1,253 @@
+/* pages/profile/profile.wxss */
+.page {
+  min-height: 100vh;
+  background: var(--bg-page);
+}
+
+.nav-bar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 120rpx 40rpx 40rpx;
+}
+
+.nav-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.user-card {
+  text-align: center;
+  padding: 60rpx 40rpx;
+}
+
+.user-avatar {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  margin: 0 auto 24rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(43, 127, 255, 0.25);
+  border: 6rpx solid #fff;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.menu-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  position: relative;
+}
+
+/* 训练报告 - 图表 */
+.menu-icon.report {
+  background: #EFF6FF;
+}
+
+.menu-icon.report::before {
+  content: '';
+  position: absolute;
+  width: 40rpx;
+  height: 28rpx;
+  border: 4rpx solid #2563EB;
+  border-radius: 4rpx;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.menu-icon.report::after {
+  content: '';
+  position: absolute;
+  width: 4rpx;
+  height: 16rpx;
+  background: #2563EB;
+  bottom: 30%;
+  left: 35%;
+  border-radius: 2rpx;
+}
+
+/* 成就徽章 - 五角星 */
+.menu-icon.badge {
+  background: #FFFBEB;
+}
+
+.menu-icon.badge::before {
+  content: '';
+  position: absolute;
+  width: 36rpx;
+  height: 36rpx;
+  background: #F59E0B;
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 通用设置 - 齿轮 */
+.menu-icon.settings {
+  background: #F3F4F6;
+}
+
+.menu-icon.settings::before {
+  content: '';
+  position: absolute;
+  width: 36rpx;
+  height: 36rpx;
+  border: 4rpx solid #4B5563;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.menu-icon.settings::after {
+  content: '';
+  position: absolute;
+  width: 16rpx;
+  height: 16rpx;
+  background: #F3F4F6;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 使用帮助 - 问号 */
+.menu-icon.help {
+  background: #ECFDF5;
+}
+
+.menu-icon.help::before {
+  content: '';
+  position: absolute;
+  width: 28rpx;
+  height: 28rpx;
+  border: 4rpx solid #059669;
+  border-radius: 50%;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.menu-icon.help::after {
+  content: '';
+  position: absolute;
+  width: 4rpx;
+  height: 10rpx;
+  background: #059669;
+  border-radius: 2rpx;
+  top: 65%;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+
+/* 反馈建议 - 对话气泡 */
+.menu-icon.feedback {
+  background: #F3E8FF;
+}
+
+.menu-icon.feedback::before {
+  content: '';
+  position: absolute;
+  width: 40rpx;
+  height: 28rpx;
+  background: #9333EA;
+  border-radius: 12rpx;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.menu-icon.feedback::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 8rpx solid transparent;
+  border-right: 8rpx solid transparent;
+  border-top: 10rpx solid #9333EA;
+  bottom: 22%;
+  left: 35%;
+}
+
+.user-level {
+  margin-top: 24rpx;
+}
+
+.level-badge {
+  background: var(--primary);
+  color: #fff;
+  padding: 8rpx 24rpx;
+  border-radius: 40rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.level-progress {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-left: 16rpx;
+}
+
+.menu-list {
+  margin: 24rpx;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+  box-shadow: var(--shadow);
+}
+
+.menu-icon {
+  width: 80rpx;
+  height: 80rpx;
+  background: var(--primary-light);
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  margin-right: 24rpx;
+}
+
+.menu-content {
+  flex: 1;
+}
+
+.menu-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.menu-desc {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-top: 8rpx;
+}
+
+.menu-arrow {
+  font-size: 40rpx;
+  color: var(--text-muted);
+}
+
+.version {
+  text-align: center;
+  padding: 40rpx;
+  font-size: 24rpx;
+  color: var(--text-muted);
+}

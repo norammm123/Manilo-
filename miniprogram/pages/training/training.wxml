@@ -1,0 +1,101 @@
+<!-- pages/training/training.wxml - 训练页面 -->
+<view class="page">
+  <view class="nav-bar">
+    <text class="nav-title">康复训练</text>
+    <text class="nav-subtitle">手语学习与发音训练</text>
+  </view>
+
+  <scroll-view class="scroll-container" scroll-y>
+    <!-- 训练模式选择 -->
+    <view class="section-title">选择训练模式</view>
+    <view class="mode-list">
+      <view class="mode-card {{currentMode === 'echo' ? 'active' : ''}}" bindtap="switchMode" data-mode="echo">
+        <view class="mode-icon">🔊</view>
+        <view class="mode-title">回声映射</view>
+        <view class="mode-desc">声音→手语→图像</view>
+      </view>
+      
+      <view class="mode-card {{currentMode === 'speak' ? 'active' : ''}}" bindtap="switchMode" data-mode="speak">
+        <view class="mode-icon">🎤</view>
+        <view class="mode-title">主动发声</view>
+        <view class="mode-desc">手语→发音→纠错</view>
+      </view>
+      
+      <view class="mode-card {{currentMode === 'chat' ? 'active' : ''}}" bindtap="switchMode" data-mode="chat">
+        <view class="mode-icon">💬</view>
+        <view class="mode-title">情景对话</view>
+        <view class="mode-desc">双向实时交流</view>
+      </view>
+    </view>
+
+    <!-- 当前训练内容 -->
+    <view class="card training-card">
+      <view class="training-header">
+        <text class="training-title">{{modeTitle}}</text>
+        <view class="tag tag-primary">{{modeSubtitle}}</view>
+      </view>
+
+      <!-- 回声映射模式 -->
+      <view class="training-content" wx:if="{{currentMode === 'echo'}}">
+        <view class="echo-display">
+          <view class="echo-icon">{{currentWord.emoji || '🔊'}}</view>
+          <text class="echo-word">{{currentWord.text || '等待声音输入...'}}</text>
+          <text class="echo-pinyin">{{currentWord.pinyin || ''}}</text>
+        </view>
+        <button class="btn btn-secondary" bindtap="playSound">🔊 播放标准发音</button>
+      </view>
+
+      <!-- 主动发声模式 -->
+      <view class="training-content" wx:if="{{currentMode === 'speak'}}">
+        <view class="speak-ring">
+          <view class="ring-inner">
+            <text class="ring-score">{{score || '--'}}</text>
+            <text class="ring-label">准确度</text>
+          </view>
+        </view>
+        <view class="speak-word">{{targetWord || '点击开始跟读'}}</view>
+        <button class="btn btn-primary" bindtap="startRecord">{{isRecording ? '录音中...' : '🎤 开始跟读'}}</button>
+      </view>
+
+      <!-- 对话社交模式 -->
+      <view class="training-content" wx:if="{{currentMode === 'chat'}}">
+        <view class="chat-area">
+          <view class="chat-message" wx:for="{{chatList}}" wx:key="index">
+            <view class="chat-avatar {{item.type}}">{{item.type === 'me' ? '我' : '师'}}</view>
+            <view class="chat-bubble {{item.type}}">{{item.text}}</view>
+          </view>
+        </view>
+        <button class="btn btn-primary" bindtap="startChat">开始练习</button>
+      </view>
+    </view>
+
+    <!-- 练习建议 -->
+    <view class="card" wx:if="{{aiSuggestion}}">
+      <view class="card-header">
+        <text class="card-title">💡 练习建议</text>
+      </view>
+      <text class="suggestion-text">{{aiSuggestion}}</text>
+    </view>
+
+    <!-- 训练统计 -->
+    <view class="card">
+      <view class="card-header">
+        <text class="card-title">本次训练</text>
+      </view>
+      <view class="stat-grid">
+        <view class="stat-item">
+          <text class="stat-value">{{trainingCount}}</text>
+          <text class="stat-label">训练次数</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{avgScore}}%</text>
+          <text class="stat-label">平均得分</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{duration}}min</text>
+          <text class="stat-label">训练时长</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,23 @@
+<!-- pages/lexicon/lexicon.wxml - 词库学习 -->
+<view class="page">
+  <view class="content">
+    <view class="search-bar">
+      <input class="search-input" placeholder="搜索词汇..." value="{{keyword}}" bindinput="onSearch" />
+    </view>
+
+    <view class="word-grid">
+      <view class="word-card" wx:for="{{filteredWords}}" wx:key="word" bindtap="playWord" data-word="{{item.word}}">
+        <view class="word-emoji">{{item.emoji}}</view>
+        <text class="word-text">{{item.word}}</text>
+        <text class="word-pinyin">{{item.pinyin}}</text>
+        <view class="word-audio {{item.audio ? '' : 'noaudio'}}">
+          <text>{{item.audio ? '🔊 点击发音' : '暂无发音'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{filteredWords.length === 0}}">
+      <text>没有找到「{{keyword}}」相关词汇</text>
+    </view>
+  </view>
+</view>

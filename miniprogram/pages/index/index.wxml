@@ -1,0 +1,90 @@
+<!-- pages/index/index.wxml - Manilo掌音首页 (简约版) -->
+<view class="page">
+  <!-- 顶部区域 -->
+  <view class="header">
+    <view class="brand">
+      <image class="brand-logo" src="/static/logo.png" mode="aspectFill"></image>
+      <view class="brand-text">
+        <text class="app-name">Manilo掌音</text>
+      </view>
+    </view>
+    
+    <view class="connect-btn {{backendConnected ? 'connected' : ''}}" bindtap="checkBackend">
+      <view class="connect-dot"></view>
+      <text>{{backendConnected ? '已连接' : '设备离线'}}</text>
+    </view>
+  </view>
+
+  <scroll-view class="content" scroll-y>
+    <!-- 设备状态卡片 -->
+    <view class="card device-card" wx:if="{{!backendConnected}}">
+      <view class="card-title">后端未连接</view>
+      <view class="card-desc">请确保 PC 后端已启动</view>
+      <button class="btn btn-primary" bindtap="checkBackend">检查后端</button>
+    </view>
+
+    <view class="card device-card connected" wx:if="{{backendConnected}}">
+      <view class="card-title">✅ 后端已连接</view>
+      <view class="card-desc">设备在线，正在接收数据</view>
+      <button class="btn btn-secondary" bindtap="checkBackend">刷新状态</button>
+    </view>
+
+    <!-- 今日统计 -->
+    <view class="stats-section">
+      <view class="section-title">今日数据</view>
+      <view class="stats-grid">
+        <view class="stat-box">
+          <text class="stat-num">{{stats.sentences || 0}}</text>
+          <text class="stat-label">识别句子</text>
+        </view>
+        <view class="stat-box">
+          <text class="stat-num">{{stats.gestures || 0}}</text>
+          <text class="stat-label">手势次数</text>
+        </view>
+        <view class="stat-box">
+          <text class="stat-num">{{stats.accuracy || 0}}%</text>
+          <text class="stat-label">准确率</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 快捷入口 -->
+    <view class="section-title">快捷功能</view>
+    <view class="quick-grid">
+      <view class="quick-item" bindtap="goToTraining">
+        <image class="quick-icon" src="/static/icons/quick-training.png" mode="aspectFit"></image>
+        <text class="quick-name">开始训练</text>
+      </view>
+      <view class="quick-item" bindtap="goToDevice">
+        <image class="quick-icon" src="/static/icons/quick-settings.png" mode="aspectFit"></image>
+        <text class="quick-name">设备设置</text>
+      </view>
+      <view class="quick-item" bindtap="showHistory">
+        <image class="quick-icon" src="/static/icons/quick-history.png" mode="aspectFit"></image>
+        <text class="quick-name">历史记录</text>
+      </view>
+      <view class="quick-item" bindtap="showLexicon">
+        <image class="quick-icon" src="/static/icons/quick-book.png" mode="aspectFit"></image>
+        <text class="quick-name">词库学习</text>
+      </view>
+    </view>
+
+    <!-- 最近识别 -->
+    <view class="section-title">最近识别</view>
+    <view class="list-card">
+      <view class="list-item" wx:for="{{recentList}}" wx:key="index">
+        <view class="list-dot"></view>
+        <view class="list-content">
+          <text class="list-text">{{item.text}}</text>
+          <text class="list-time">{{item.time}}</text>
+        </view>
+        <view class="list-tag {{item.confidence >= 0.8 ? 'high' : 'mid'}}">
+          {{item.confidence >= 0.8 ? '高' : '中'}}
+        </view>
+      </view>
+      <view class="list-empty" wx:if="{{recentList.length === 0}}">
+        <text>暂无识别记录</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,68 @@
+<!-- pages/settings/settings.wxml - 通用设置 -->
+<view class="page">
+  <view class="content">
+    <!-- 服务器地址 -->
+    <view class="card">
+      <view class="card-title">服务器</view>
+      <view class="server-row">
+        <input class="server-input" placeholder="http://192.168.x.x:5000"
+               value="{{serverUrl}}" bindinput="onServerInput" />
+        <button class="save-btn" bindtap="saveServer" disabled="{{saving}}">保存</button>
+      </view>
+      <view class="set-desc">改网络后在此填手套 PC 的 IP，保存立即生效，无需改代码</view>
+      <view class="server-status" wx:if="{{serverStatus}}">
+        <text>{{serverStatus}}</text>
+      </view>
+    </view>
+
+    <!-- 外观 -->
+    <view class="card">
+      <view class="card-title">外观</view>
+      <view class="set-row">
+        <view class="set-info">
+          <text class="set-name">深色模式</text>
+          <text class="set-desc">跟随系统 / 手动切换</text>
+        </view>
+        <switch checked="{{darkMode}}" bindchange="toggleDark" color="#2B7FFF" />
+      </view>
+    </view>
+
+    <!-- 通知 -->
+    <view class="card">
+      <view class="card-title">通知</view>
+      <view class="set-row">
+        <view class="set-info">
+          <text class="set-name">识别成功提醒</text>
+          <text class="set-desc">识别到手势时震动提示</text>
+        </view>
+        <switch checked="{{vibrateOn}}" bindchange="toggleVibrate" color="#2B7FFF" />
+      </view>
+      <view class="set-row">
+        <view class="set-info">
+          <text class="set-name">语音播报</text>
+          <text class="set-desc">识别结果自动朗读</text>
+        </view>
+        <switch checked="{{speakOn}}" bindchange="toggleSpeak" color="#2B7FFF" />
+      </view>
+    </view>
+
+    <!-- 数据 -->
+    <view class="card">
+      <view class="card-title">数据</view>
+      <view class="set-row" bindtap="clearCache">
+        <view class="set-info">
+          <text class="set-name">清除本地缓存</text>
+          <text class="set-desc">清理临时数据与缓存</text>
+        </view>
+        <text class="set-arrow">›</text>
+      </view>
+      <view class="set-row" bindtap="about">
+        <view class="set-info">
+          <text class="set-name">关于 Manilo掌音</text>
+          <text class="set-desc">v2.0.0</text>
+        </view>
+        <text class="set-arrow">›</text>
+      </view>
+    </view>
+  </view>
+</view>

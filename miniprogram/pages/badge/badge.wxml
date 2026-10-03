@@ -1,0 +1,20 @@
+<!-- pages/badge/badge.wxml - 成就徽章 -->
+<view class="page">
+  <view class="content">
+    <view class="badge-grid">
+      <view class="badge-item {{item.earned ? '' : 'locked'}}" wx:for="{{badges}}" wx:key="id">
+        <view class="badge-icon {{item.earned ? '' : 'gray'}}">
+          <text>{{item.emoji}}</text>
+        </view>
+        <text class="badge-name">{{item.name}}</text>
+        <text class="badge-desc">{{item.desc}}</text>
+        <text class="badge-progress" wx:if="{{!item.earned}}">{{item.progress}}</text>
+        <text class="badge-earned" wx:else>已解锁</text>
+      </view>
+    </view>
+
+    <view class="tip" wx:if="{{!analytics.mastery_available}}">
+      <text>数据积累中：再多练几次就能解锁更多徽章</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,32 @@
+/* pages/lexicon/lexicon.wxss */
+.page { min-height: 100vh; background: #F8F9FA; }
+.content { padding: 32rpx; }
+
+.search-bar { margin-bottom: 24rpx; }
+.search-input {
+  height: 88rpx; background: #fff; border-radius: 44rpx;
+  padding: 0 32rpx; font-size: 28rpx; color: #111827;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.word-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24rpx; }
+
+.word-card {
+  background: #fff; border-radius: 24rpx; padding: 32rpx 24rpx;
+  text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  transition: transform 0.15s;
+}
+.word-card:active { transform: scale(0.97); }
+
+.word-emoji { font-size: 72rpx; display: block; margin-bottom: 12rpx; }
+.word-text { font-size: 36rpx; font-weight: 700; color: #111827; display: block; }
+.word-pinyin { font-size: 24rpx; color: #2563EB; margin-top: 6rpx; display: block; }
+
+.word-audio { margin-top: 14rpx; }
+.word-audio text {
+  display: inline-block; padding: 10rpx 20rpx; border-radius: 40rpx;
+  background: #EFF6FF; color: #2563EB; font-size: 22rpx; font-weight: 600;
+}
+.word-audio.noaudio text { background: #F3F4F6; color: #9CA3AF; }
+
+.empty { text-align: center; padding: 80rpx 32rpx; color: #9CA3AF; font-size: 28rpx; }

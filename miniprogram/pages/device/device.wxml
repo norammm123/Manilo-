@@ -1,0 +1,96 @@
+<!-- pages/device/device.wxml - 设备页面 -->
+<view class="page">
+  <view class="nav-bar">
+    <text class="nav-title">设备管理</text>
+  </view>
+
+  <scroll-view class="scroll-container" scroll-y>
+    <!-- 设备卡片 -->
+    <view class="card device-card">
+      <view class="device-icon">👋</view>
+      <view class="device-name">Manilo Pro</view>
+      <view class="device-status">
+        <view class="status-dot {{bleConnected ? 'online' : 'offline'}}"></view>
+        <text>{{bleConnected ? '已连接' : '未连接'}}</text>
+      </view>
+      <button class="btn {{bleConnected ? 'btn-secondary' : 'btn-primary'}}" 
+              bindtap="toggleConnect">
+        {{bleConnected ? '断开连接' : '立即连接'}}
+      </button>
+    </view>
+
+    <!-- 识别设置 -->
+    <view class="card">
+      <view class="card-header">
+        <text class="card-title">识别设置</text>
+      </view>
+      
+      <view class="setting-item">
+        <view class="setting-info">
+          <text class="setting-name">置信度阈值</text>
+          <text class="setting-desc">低于此值的手势将被忽略</text>
+        </view>
+        <view class="setting-value">{{threshold}}</view>
+      </view>
+      <slider min="{{10}}" max="{{95}}" value="{{threshold * 100}}" 
+              show-value bindchange="onThresholdChange" />
+
+      <view class="setting-item">
+        <view class="setting-info">
+          <text class="setting-name">识别冷却</text>
+          <text class="setting-desc">两次识别之间的间隔</text>
+        </view>
+        <view class="setting-value">{{cooldown}}s</view>
+      </view>
+      <slider min="{{3}}" max="{{25}}" value="{{cooldown * 10}}" 
+              show-value bindchange="onCooldownChange" />
+    </view>
+
+    <!-- 震动反馈 -->
+    <view class="card">
+      <view class="card-header">
+        <text class="card-title">震动反馈</text>
+        <switch checked="{{vibrationEnabled}}" bindchange="toggleVibration" />
+      </view>
+      
+      <view class="vibrate-options" wx:if="{{vibrationEnabled}}">
+        <view class="vibrate-item" bindtap="testVibrate" data-type="light">
+          <text>轻震</text>
+          <text class="vibrate-desc">用于送气音提示</text>
+        </view>
+        <view class="vibrate-item" bindtap="testVibrate" data-type="long">
+          <text>长震</text>
+          <text class="vibrate-desc">用于音调纠正</text>
+        </view>
+        <view class="vibrate-item" bindtap="testVibrate" data-type="strong">
+          <text>强震</text>
+          <text class="vibrate-desc">用于重要提醒</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 设备信息 -->
+    <view class="card" wx:if="{{deviceInfo}}">
+      <view class="card-header">
+        <text class="card-title">设备信息</text>
+      </view>
+      
+      <view class="info-list">
+        <view class="info-row">
+          <text class="info-label">设备ID</text>
+          <text class="info-value">{{deviceInfo.deviceId || 'Unknown'}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">固件版本</text>
+          <text class="info-value">v{{deviceInfo.version || '2.0.0'}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">电池电量</text>
+          <text class="info-value" style="color: {{battery > 20 ? '#52C41A' : '#FF4D4F'}};">
+            {{battery}}%
+          </text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

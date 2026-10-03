@@ -1,0 +1,93 @@
+<!-- pages/profile/profile.wxml - 个人中心 -->
+<view class="page">
+  <view class="nav-bar">
+    <text class="nav-title">我的</text>
+  </view>
+
+  <scroll-view class="scroll-container" scroll-y>
+    <!-- 用户信息 -->
+    <view class="card user-card">
+      <view class="user-avatar">
+        <image src="/static/avatar.png" mode="aspectFill" class="avatar-img"></image>
+      </view>
+      <view class="user-name">康复训练学员</view>
+      <view class="user-id">ID: MNL20241002001</view>
+      <view class="user-level">
+        <text class="level-badge">初级学员</text>
+        <text class="level-progress">训练第 12 天</text>
+      </view>
+    </view>
+
+    <!-- 学习数据 -->
+    <view class="card">
+      <view class="card-header">
+        <text class="card-title">学习数据</text>
+      </view>
+      <view class="stat-grid">
+        <view class="stat-item">
+          <text class="stat-value">128</text>
+          <text class="stat-label">掌握词汇</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">24h</text>
+          <text class="stat-label">累计训练</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">87%</text>
+          <text class="stat-label">平均得分</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 菜单列表 -->
+    <view class="menu-list">
+      <view class="menu-item" bindtap="goReport">
+        <view class="menu-icon report"></view>
+        <view class="menu-content">
+          <text class="menu-title">训练报告</text>
+          <text class="menu-desc">查看详细训练数据分析</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="goBadge">
+        <view class="menu-icon badge"></view>
+        <view class="menu-content">
+          <text class="menu-title">成就徽章</text>
+          <text class="menu-desc">已获得 5 枚徽章</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="goSettings">
+        <view class="menu-icon settings"></view>
+        <view class="menu-content">
+          <text class="menu-title">通用设置</text>
+          <text class="menu-desc">通知、主题、语言</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="goHelp">
+        <view class="menu-icon help"></view>
+        <view class="menu-content">
+          <text class="menu-title">使用帮助</text>
+          <text class="menu-desc">常见问题与教程</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="goFeedback">
+        <view class="menu-icon feedback"></view>
+        <view class="menu-content">
+          <text class="menu-title">反馈建议</text>
+          <text class="menu-desc">帮助我们改进产品</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 版本信息 -->
+    <view class="version">Manilo掌音 v2.0.0</view>
+  </scroll-view>
+</view>
